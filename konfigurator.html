@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfigurator Drabin Technicznych</title>
+    <style>
+        /* ============================================
+           RESET I ZMIENNE CSS
+           ============================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* Kolory */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #3a3a3a;
+            --bg-card-hover: #4a4a4a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #808080;
+            --accent: #4a9eff;
+            --accent-hover: #6bb3ff;
+            --accent-dark: #2d7cd6;
+            --border: #505050;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+
+            /* Rozmiary */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        /* ============================================
+           PODSTAWOWE STYLE
+           ============================================ */
+        html {
+            height: 100%;
+        }
+
+        body {
+            min-height: 100%;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           LAYOUT APLIKACJI
+           ============================================ */
+        .app-container {
+            height: 100vh;
+            height: 100dvh; /* dynamic viewport height dla mobile */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ============================================
+           NAGŁÓWEK GLOBALNY
+           ============================================ */
+        .app-header {
+            padding: 15px 30px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .back-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .back-button:hover {
+            background-color: var(--accent);
+        }
+
+        .back-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .back-button:disabled:hover {
+            background-color: var(--bg-card);
+        }
+
+        .back-button svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .header-title {
+            flex: 1;
+            min-width: 0; /* pozwala na zawijanie tekstu */
+        }
+
+        .header-title h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+        }
+
+        .header-title .step-indicator {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            word-wrap: break-word;
+        }
+
+        /* ============================================
+           GŁÓWNA ZAWARTOŚĆ
+           ============================================ */
+        .app-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* ============================================
+           EKRANY (SCREENS)
+           ============================================ */
+        .screen {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============================================
+           EKRANY PEŁNOEKRANOWE (wybór)
+           ============================================ */
+        .fullscreen-layout {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .fullscreen-layout .screen-intro {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+            flex-shrink: 0;
+            padding: 0 10px;
+        }
+
+        .fullscreen-layout .screen-intro h2 {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 600;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .fullscreen-layout .screen-intro p {
+            color: var(--text-secondary);
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+        }
+
+        /* Siatka kafelków - pełnoekranowa */
+        .choice-grid-fullscreen {
+            display: grid;
+            gap: 25px;
+            width: 100%;
+            max-width: 900px;
+            flex-shrink: 0;
+        }
+
+        .choice-grid-fullscreen.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .choice-grid-fullscreen.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* Duże kafelki wyboru */
+        .choice-card-large {
+            background-color: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: var(--transition);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .choice-card-large:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .choice-card-large.selected {
+            border-color: var(--accent);
+            background-color: rgba(74, 158, 255, 0.1);
+        }
+
+        .choice-card-large .card-image {
+            width: 100%;
+            height: 180px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .choice-card-large .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .choice-card-large .card-body {
+            padding: 20px 25px 25px;
+            text-align: center;
+        }
+
+        .choice-card-large .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .choice-card-large .card-description {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           EKRAN PARAMETRÓW - LAYOUT DWUKOLUMNOWY
+           ============================================ */
+        .split-layout {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Lewa strona - wizualizacja (stała na desktop) */
+        .visualization-panel {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            min-width: 300px;
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        .visualization-content {
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            max-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .visualization-content .placeholder-text {
+            max-width: 300px;
+        }
+
+        .visualization-content .placeholder-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        /* Prawa strona - panel konfiguracji (szerszy) */
+        .config-panel {
+            width: 520px;
+            max-width: 50%;
+            height: 100%;
+            background-color: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .config-panel-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-panel-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .config-panel-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .config-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 25px 30px;
+            min-height: 0;
+        }
+
+        /* Scrollbar widoczny na desktop */
+        .config-panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .config-panel-content::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .config-panel-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .config-panel-content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .config-panel-footer {
+            padding: 20px 30px;
+            border-top: 1px solid var(--border);
+            background-color: var(--bg-primary);
+        }
+
+        /* ============================================
+           PODSUMOWANIE KONFIGURACJI
+           ============================================ */
+        .config-summary {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 25px;
+        }
+
+        .config-summary-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .config-summary-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .config-summary-item .label {
+            color: var(--text-secondary);
+        }
+
+        .config-summary-item .value {
+            font-weight: 500;
+        }
+
+        /* ============================================
+           TABELA KOMPONENTÓW
+           ============================================ */
+        .component-qty-input {
+            transition: var(--transition);
+        }
+
+        .component-qty-input:focus {
+            outline: none;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        }
+
+        .component-qty-input::-webkit-inner-spin-button,
+        .component-qty-input::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        /* ============================================
+           FORMULARZ PARAMETRÓW
+           ============================================ */
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .form-group .hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .form-group .hint.warning {
+            color: var(--warning);
+        }
+
+        .form-group .hint.error {
+            color: var(--error);
+        }
+
+        /* Inputy */
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        }
+
+        .form-input:invalid {
+            border-color: var(--error);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Input z jednostką */
+        .input-with-unit {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .input-with-unit .form-input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+        }
+
+        .input-with-unit .unit {
+            padding: 14px 18px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        /* Select */
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23808080' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 45px;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-select option {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Checkbox */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            background-color: var(--bg-card);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .checkbox-wrapper:hover {
+            background-color: var(--bg-card-hover);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .checkbox-wrapper input:checked + .checkbox-custom {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkbox-custom svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .checkbox-wrapper input:checked + .checkbox-custom svg {
+            opacity: 1;
+        }
+
+        .checkbox-label {
+            flex: 1;
+        }
+
+        .checkbox-label .label-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .checkbox-label .label-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Pole warunkowe */
+        .conditional-field {
+            margin-top: 18px;
+            padding: 18px;
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--accent);
+            display: none;
+        }
+
+        .conditional-field.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============================================
+           PRZYCISKI
+           ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 32px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-card-hover);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           SPECJALNE - LINK KONTAKTOWY
+           ============================================ */
+        .contact-link {
+            display: block;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background-color: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-md);
+            color: var(--warning);
+            text-decoration: none;
+            font-size: 0.95rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .contact-link:hover {
+            background-color: rgba(255, 152, 0, 0.2);
+        }
+
+        /* ============================================
+           PROGRESS BAR
+           ============================================ */
+        .progress-bar {
+            height: 4px;
+            background-color: var(--bg-primary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        /* ============================================
+           RESPONSYWNOŚĆ
+           ============================================ */
+        @media (max-width: 1100px) {
+            .choice-grid-fullscreen.cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                height: auto;
+                min-height: 100vh;
+                min-height: 100dvh;
+                overflow: visible;
+            }
+
+            .app-content {
+                flex: 1;
+                overflow: visible;
+            }
+
+            .screen {
+                min-height: calc(100vh - 74px);
+                min-height: calc(100dvh - 74px);
+                height: auto;
+            }
+
+            .split-layout {
+                flex-direction: column;
+                overflow: visible;
+                min-height: 100%;
+                height: auto;
+            }
+
+            .visualization-panel {
+                height: 180px;
+                min-height: 180px;
+                max-height: 180px;
+                flex: none;
+            }
+
+            .config-panel {
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                flex: none;
+                overflow: visible;
+                min-height: auto;
+            }
+
+            .config-panel-content {
+                overflow: visible;
+                flex: none;
+            }
+
+            .fullscreen-layout {
+                padding: 20px 15px;
+                min-height: calc(100vh - 74px);
+                min-height: calc(100dvh - 74px);
+                height: auto;
+                justify-content: flex-start;
+                padding-top: 30px;
+                overflow-y: auto;
+            }
+
+            .choice-grid-fullscreen.cols-2,
+            .choice-grid-fullscreen.cols-3 {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .choice-card-large .card-image {
+                height: 120px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-header {
+                padding: 12px 15px;
+            }
+
+            .header-title h1 {
+                font-size: 1.1rem;
+                line-height: 1.3;
+            }
+
+            .header-title .step-indicator {
+                font-size: 0.8rem;
+            }
+
+            .back-button {
+                width: 40px;
+                height: 40px;
+            }
+
+            .fullscreen-layout {
+                padding: 15px 12px;
+                padding-top: 20px;
+            }
+
+            .fullscreen-layout .screen-intro {
+                margin-bottom: 20px;
+            }
+
+            .fullscreen-layout .screen-intro h2 {
+                font-size: 1.2rem;
+                line-height: 1.3;
+            }
+
+            .fullscreen-layout .screen-intro p {
+                font-size: 0.9rem;
+            }
+
+            .choice-grid-fullscreen {
+                gap: 15px;
+            }
+
+            .choice-card-large .card-image {
+                height: 100px;
+                font-size: 3rem;
+            }
+
+            .choice-card-large .card-body {
+                padding: 12px 15px 15px;
+            }
+
+            .choice-card-large .card-title {
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+
+            .choice-card-large .card-description {
+                font-size: 0.85rem;
+            }
+
+            .visualization-panel {
+                height: 150px;
+                min-height: 150px;
+                max-height: 150px;
+                padding: 15px;
+            }
+
+            .visualization-content {
+                font-size: 0.9rem;
+            }
+
+            .visualization-content .placeholder-icon {
+                font-size: 3rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .config-panel-content {
+                padding: 15px;
+            }
+
+            .config-panel-header {
+                padding: 15px;
+            }
+
+            .config-panel-header h2 {
+                font-size: 1.1rem;
+            }
+
+            .config-panel-header p {
+                font-size: 0.85rem;
+            }
+
+            .config-panel-footer {
+                padding: 12px 15px;
+            }
+
+            .form-section-title {
+                font-size: 0.8rem;
+            }
+
+            .form-group label {
+                font-size: 0.95rem;
+            }
+
+            .form-input,
+            .form-select {
+                padding: 12px 14px;
+                font-size: 16px; /* zapobiega zoom na iOS */
+            }
+
+            .checkbox-wrapper {
+                padding: 12px 14px;
+            }
+
+            .checkbox-label .label-title {
+                font-size: 0.95rem;
+            }
+
+            .checkbox-label .label-description {
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 14px 24px;
+                font-size: 1rem;
+            }
+
+            .config-summary {
+                padding: 14px;
+            }
+
+            .config-summary-item {
+                font-size: 0.9rem;
+                padding: 8px 0;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .header-title h1 {
+                font-size: 1rem;
+            }
+
+            .fullscreen-layout .screen-intro h2 {
+                font-size: 1.1rem;
+            }
+
+            .choice-card-large .card-image {
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ============================================
+             NAGŁÓWEK GLOBALNY
+             ============================================ -->
+        <header class="app-header">
+            <button class="back-button" id="backButton" disabled title="Wróć">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <div class="header-title">
+                <h1 id="screenTitle">Konfigurator Drabin</h1>
+                <div class="step-indicator" id="stepIndicator">Wybierz przeznaczenie</div>
+            </div>
+        </header>
+
+        <!-- ============================================
+             GŁÓWNA ZAWARTOŚĆ
+             ============================================ -->
+        <main class="app-content">
+
+            <!-- ========== EKRAN 1: Wybór przeznaczenia (FULLSCREEN) ========== -->
+            <div class="screen active" id="screen-purpose">
+                <div class="fullscreen-layout">
+                    <div class="screen-intro">
+                        <h2>Wybierz przeznaczenie drabiny</h2>
+                        <p>Określ, gdzie będzie zamontowana Twoja drabina techniczna</p>
+                    </div>
+
+                    <div class="choice-grid-fullscreen cols-2">
+                        <div class="choice-card-large" data-choice="internal" onclick="Configurator.selectPurpose('internal')">
+                            <div class="card-image">
+                                <!-- Placeholder na zdjęcie -->
+                                &#127968;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Wewnętrzna</div>
+                                <div class="card-description">
+                                    Drabiny do użytku wewnątrz budynków - do pomieszczeń technicznych, maszynowni, poddaszy
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card-large" data-choice="external" onclick="Configurator.selectPurpose('external')">
+                            <div class="card-image">
+                                <!-- Placeholder na zdjęcie -->
+                                &#127981;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Zewnętrzna</div>
+                                <div class="card-description">
+                                    Drabiny fasadowe i ewakuacyjne - montowane na zewnątrz budynków, zgodne z przepisami BHP
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== EKRAN 2: Schemat drabiny zewnętrznej (FULLSCREEN) ========== -->
+            <div class="screen" id="screen-scheme">
+                <div class="fullscreen-layout">
+                    <div class="screen-intro">
+                        <h2>Wybierz schemat drabiny</h2>
+                        <p>Określ konstrukcję i sposób zakończenia drabiny</p>
+                    </div>
+
+                    <div class="choice-grid-fullscreen cols-3">
+                        <div class="choice-card-large" data-choice="no-platform" onclick="Configurator.selectScheme('no-platform')">
+                            <div class="card-image">
+                                &#128681;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Bez podestu</div>
+                                <div class="card-description">
+                                    Klasyczna drabina prosta zakończona bezpośrednio na poziomie dachu
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card-large" data-choice="with-platform" onclick="Configurator.selectScheme('with-platform')">
+                            <div class="card-image">
+                                &#128682;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Z podestem (50 cm)</div>
+                                <div class="card-description">
+                                    Drabina z platformą spoczynkową ułatwiającą wejście na dach
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card-large" data-choice="attic-passage" onclick="Configurator.selectScheme('attic-passage')">
+                            <div class="card-image">
+                                &#127970;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Przejście przez attykę</div>
+                                <div class="card-description">
+                                    Specjalna konstrukcja umożliwiająca bezpieczne przejście przez murek attyki
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== EKRAN 3: Kosz ochronny (FULLSCREEN) ========== -->
+            <div class="screen" id="screen-cage">
+                <div class="fullscreen-layout">
+                    <div class="screen-intro">
+                        <h2>Kosz ochronny</h2>
+                        <p>Zdecyduj, czy drabina ma posiadać kosz ochronny (wymagany dla drabin powyżej 3m)</p>
+                    </div>
+
+                    <div class="choice-grid-fullscreen cols-3">
+                        <div class="choice-card-large" data-choice="no-cage" onclick="Configurator.selectCage('no-cage')">
+                            <div class="card-image">
+                                &#10060;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Bez kosza</div>
+                                <div class="card-description">
+                                    Drabina bez osłony ochronnej - dopuszczalna dla drabin do 3m wysokości
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card-large" data-choice="with-cage" onclick="Configurator.selectCage('with-cage')">
+                            <div class="card-image">
+                                &#9989;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Z koszem ochronnym</div>
+                                <div class="card-description">
+                                    Kosz od 2.2-3m nad ziemią - zgodny z przepisami BHP
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="choice-card-large" data-choice="with-cage-full" onclick="Configurator.selectCage('with-cage-full')">
+                            <div class="card-image">
+                                &#128737;
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">Kosz po całości</div>
+                                <div class="card-description">
+                                    Kosz na całej długości drabiny - maksymalna ochrona
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== EKRAN 4: Parametry drabiny (SPLIT LAYOUT) ========== -->
+            <div class="screen" id="screen-params">
+                <div class="split-layout">
+                    <!-- Lewa strona - wizualizacja -->
+                    <div class="visualization-panel">
+                        <div class="visualization-content" id="visualizationArea">
+                            <div>
+                                <div class="placeholder-icon">&#128207;</div>
+                                <p class="placeholder-text">
+                                    Tutaj pojawi się podgląd 3D konfigurowanej drabiny z wymiarami
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prawa strona - panel konfiguracji -->
+                    <div class="config-panel">
+                        <div class="config-panel-header">
+                            <h2>Parametry drabiny</h2>
+                            <p>Wprowadź szczegółowe wymiary i opcje montażu</p>
+                        </div>
+
+                        <div class="config-panel-content">
+                            <!-- Podsumowanie wyborów -->
+                            <div class="config-summary" id="configSummary">
+                                <div class="config-summary-title">Twoja konfiguracja</div>
+                                <div id="summaryContent"></div>
+                            </div>
+
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+                            </div>
+
+                            <!-- Parametry formularza -->
+                            <form id="paramsForm">
+                                <div class="form-section">
+                                    <div class="form-section-title">Wymiary</div>
+
+                                    <!-- Wysokość ściany -->
+                                    <div class="form-group">
+                                        <label for="wallHeight">Wysokość ściany</label>
+                                        <div class="input-with-unit">
+                                            <input
+                                                type="number"
+                                                id="wallHeight"
+                                                class="form-input"
+                                                placeholder="np. 8.5"
+                                                min="1"
+                                                max="30"
+                                                step="0.1"
+                                                required
+                                                oninput="Configurator.validateForm()"
+                                            >
+                                            <span class="unit">m</span>
+                                        </div>
+                                        <div class="hint" id="wallHeightHint">Maksymalna wysokość: 30 m</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section" id="externalOptions" style="display: none;">
+                                    <div class="form-section-title">Opcje montażu</div>
+
+                                    <!-- Rodzaj wsporników -->
+                                    <div class="form-group">
+                                        <label for="bracketType">Rodzaj wsporników</label>
+                                        <select id="bracketType" class="form-select" onchange="Configurator.onBracketChange()">
+                                            <option value="short">Krótkie (16-26 cm) - ściany bez ocieplenia</option>
+                                            <option value="medium">Średnie (26-36 cm) - ocieplenie do 10 cm</option>
+                                            <option value="long">Długie (36-46 cm) - ocieplenie do 20 cm</option>
+                                            <option value="custom">Inne - potrzebuję dłuższe</option>
+                                        </select>
+                                        <a href="#" class="contact-link" id="bracketContactLink" style="display: none;" onclick="Configurator.requestContact('custom-brackets'); return false;">
+                                            &#128222; Skontaktuj się z nami w sprawie niestandardowych wsporników
+                                        </a>
+                                    </div>
+
+                                    <!-- Blokada dostępu -->
+                                    <div class="form-group">
+                                        <label class="checkbox-wrapper" for="accessLock">
+                                            <input type="checkbox" id="accessLock" onchange="Configurator.validateForm()">
+                                            <span class="checkbox-custom">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                                                    <path d="M5 12l5 5L20 7"/>
+                                                </svg>
+                                            </span>
+                                            <span class="checkbox-label">
+                                                <span class="label-title">Blokada dostępu</span>
+                                                <span class="label-description">Zamykana klapka uniemożliwiająca wejście osobom niepowołanym</span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Drabina zawieszona -->
+                                    <div class="form-group">
+                                        <label class="checkbox-wrapper" for="suspended">
+                                            <input type="checkbox" id="suspended" onchange="Configurator.toggleSuspended()">
+                                            <span class="checkbox-custom">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                                                    <path d="M5 12l5 5L20 7"/>
+                                                </svg>
+                                            </span>
+                                            <span class="checkbox-label">
+                                                <span class="label-title">Drabina zawieszona nad ziemią</span>
+                                                <span class="label-description">Drabina nie sięga poziomu gruntu</span>
+                                            </span>
+                                        </label>
+
+                                        <!-- Pole warunkowe - wysokość zawieszenia -->
+                                        <div class="conditional-field" id="suspendedField">
+                                            <label for="suspendedHeight">Wysokość zawieszenia nad ziemią</label>
+                                            <div class="input-with-unit">
+                                                <input
+                                                    type="number"
+                                                    id="suspendedHeight"
+                                                    class="form-input"
+                                                    placeholder="0"
+                                                    min="0"
+                                                    max="0"
+                                                    step="0.1"
+                                                    value="0"
+                                                    oninput="Configurator.validateForm()"
+                                                >
+                                                <span class="unit">m</span>
+                                            </div>
+                                            <div class="hint" id="suspendedHeightHint">Podaj najpierw wysokość ściany</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sekcja dla drabiny wewnętrznej -->
+                                <div class="form-section" id="internalOptions" style="display: none;">
+                                    <div class="form-section-title">Opcje montażu wewnętrznego</div>
+
+                                    <div class="form-group">
+                                        <label for="mountingType">Typ mocowania</label>
+                                        <select id="mountingType" class="form-select">
+                                            <option value="wall">Do ściany</option>
+                                            <option value="ceiling">Do sufitu</option>
+                                            <option value="floor">Do podłogi</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="config-panel-footer">
+                            <button class="btn btn-primary btn-block" id="nextButton" onclick="Configurator.nextStep()" disabled>
+                                Podsumowanie
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== EKRAN 5: Podsumowanie końcowe (SPLIT LAYOUT) ========== -->
+            <div class="screen" id="screen-summary">
+                <div class="split-layout">
+                    <!-- Lewa strona - podsumowanie konfiguracji -->
+                    <div class="visualization-panel" id="summaryVisualization">
+                        <div class="visualization-content" style="align-items: flex-start; justify-content: flex-start; padding: 20px;">
+                            <div style="width: 100%; max-width: 400px;">
+                                <h3 style="margin-bottom: 15px; font-size: 1.1rem;">Parametry drabiny</h3>
+                                <div id="summaryParams" style="background: var(--bg-card); padding: 15px; border-radius: 8px;">
+                                    <!-- Wypełniane dynamicznie -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prawa strona - lista komponentów -->
+                    <div class="config-panel">
+                        <div class="config-panel-header">
+                            <h2>Lista komponentów</h2>
+                            <p>Możesz edytować ilości przed wysłaniem zapytania</p>
+                        </div>
+
+                        <div class="config-panel-content">
+                            <!-- Tabela komponentów -->
+                            <div class="form-section">
+                                <div class="form-section-title">Elementy drabiny</div>
+                                <div id="componentsTable">
+                                    <!-- Wypełniane dynamicznie -->
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">Następne kroki</div>
+                                <button class="btn btn-primary btn-block" onclick="Configurator.requestQuote()" style="margin-bottom: 12px;">
+                                    &#128221; Poproś o wycenę
+                                </button>
+                                <button class="btn btn-secondary btn-block" onclick="Configurator.requestContact('quote')">
+                                    &#128222; Skontaktuj się z nami
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /**
+         * ============================================
+         * KONFIGURATOR DRABIN - MODUŁ GŁÓWNY
+         * ============================================
+         *
+         * Architektura modularna przygotowana pod:
+         * - Dynamiczny model 3D
+         * - Dodatkowe opcje wyposażenia
+         * - Rozbudowę o kolejne kroki
+         */
+
+        const Configurator = (function() {
+            // ============================================
+            // STAN APLIKACJI
+            // ============================================
+            const state = {
+                // Stos historii kroków do nawigacji wstecz
+                history: [],
+
+                // Aktualny ekran
+                currentScreen: 'purpose',
+
+                // Wybory użytkownika
+                config: {
+                    purpose: null,      // 'internal' | 'external'
+                    scheme: null,       // 'no-platform' | 'with-platform' | 'attic-passage'
+                    cage: null,         // 'no-cage' | 'with-cage'
+                    wallHeight: null,
+                    bracketType: 'short',
+                    accessLock: false,
+                    suspended: false,
+                    suspendedHeight: 0,
+                    mountingType: 'wall'
+                },
+
+                // Lista komponentów z edytowanymi ilościami
+                components: [],
+
+                // Mapowanie ekranów
+                screens: {
+                    'purpose': {
+                        title: 'Konfigurator Drabin',
+                        step: 'Krok 1 - Wybierz przeznaczenie'
+                    },
+                    'scheme': {
+                        title: 'Schemat drabiny',
+                        step: 'Krok 2 - Wybierz schemat'
+                    },
+                    'cage': {
+                        title: 'Kosz ochronny',
+                        step: 'Krok 3 - Kosz ochronny'
+                    },
+                    'params': {
+                        title: 'Parametry',
+                        step: 'Krok 4 - Wprowadź parametry'
+                    },
+                    'summary': {
+                        title: 'Podsumowanie',
+                        step: 'Konfiguracja zakończona'
+                    }
+                }
+            };
+
+            // ============================================
+            // ELEMENTY DOM
+            // ============================================
+            const elements = {
+                backButton: () => document.getElementById('backButton'),
+                nextButton: () => document.getElementById('nextButton'),
+                screenTitle: () => document.getElementById('screenTitle'),
+                stepIndicator: () => document.getElementById('stepIndicator'),
+                progressBar: () => document.getElementById('progressBar'),
+                configSummary: () => document.getElementById('configSummary'),
+                summaryContent: () => document.getElementById('summaryContent'),
+                finalSummaryContent: () => document.getElementById('finalSummaryContent'),
+                visualizationArea: () => document.getElementById('visualizationArea')
+            };
+
+            // ============================================
+            // NAWIGACJA
+            // ============================================
+
+            /**
+             * Przejście do wskazanego ekranu
+             */
+            function goToScreen(screenId, addToHistory = true) {
+                // Zapisz aktualny ekran w historii
+                if (addToHistory && state.currentScreen !== screenId) {
+                    state.history.push(state.currentScreen);
+                }
+
+                // Ukryj wszystkie ekrany
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+
+                // Pokaż nowy ekran
+                const newScreen = document.getElementById(`screen-${screenId}`);
+                if (newScreen) {
+                    newScreen.classList.add('active');
+                    state.currentScreen = screenId;
+                }
+
+                // Aktualizuj UI
+                updateUI();
+
+                // Wyślij informację do rodzica (iframe)
+                sendMessage('screenChange', { screen: screenId, config: state.config });
+            }
+
+            /**
+             * Powrót do poprzedniego ekranu
+             */
+            function goBack() {
+                if (state.history.length > 0) {
+                    const previousScreen = state.history.pop();
+                    goToScreen(previousScreen, false);
+                }
+            }
+
+            /**
+             * Przejście do następnego kroku
+             */
+            function nextStep() {
+                if (state.currentScreen === 'params') {
+                    // Zbierz dane z formularza
+                    collectFormData();
+                    goToScreen('summary');
+                }
+            }
+
+            // ============================================
+            // WYBORY UŻYTKOWNIKA
+            // ============================================
+
+            /**
+             * Wybór przeznaczenia drabiny
+             */
+            function selectPurpose(purpose) {
+                state.config.purpose = purpose;
+                highlightChoice('screen-purpose', purpose);
+
+                if (purpose === 'internal') {
+                    // Drabina wewnętrzna - od razu do parametrów
+                    setTimeout(() => {
+                        goToScreen('params');
+                        showInternalOptions();
+                    }, 200);
+                } else {
+                    // Drabina zewnętrzna - pokaż wybór schematu
+                    setTimeout(() => goToScreen('scheme'), 200);
+                }
+            }
+
+            /**
+             * Wybór schematu drabiny zewnętrznej
+             */
+            function selectScheme(scheme) {
+                state.config.scheme = scheme;
+                highlightChoice('screen-scheme', scheme);
+
+                setTimeout(() => goToScreen('cage'), 200);
+            }
+
+            /**
+             * Wybór kosza ochronnego
+             */
+            function selectCage(cage) {
+                state.config.cage = cage;
+                highlightChoice('screen-cage', cage);
+
+                setTimeout(() => {
+                    goToScreen('params');
+                    showExternalOptions();
+                }, 200);
+            }
+
+            /**
+             * Podświetl wybraną kartę
+             */
+            function highlightChoice(screenId, choice) {
+                const screen = document.getElementById(screenId);
+                screen.querySelectorAll('.choice-card-large').forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.dataset.choice === choice) {
+                        card.classList.add('selected');
+                    }
+                });
+            }
+
+            // ============================================
+            // FORMULARZ PARAMETRÓW
+            // ============================================
+
+            /**
+             * Pokaż opcje dla drabiny zewnętrznej
+             */
+            function showExternalOptions() {
+                document.getElementById('externalOptions').style.display = 'block';
+                document.getElementById('internalOptions').style.display = 'none';
+                updateSummary();
+                validateForm();
+            }
+
+            /**
+             * Pokaż opcje dla drabiny wewnętrznej
+             */
+            function showInternalOptions() {
+                document.getElementById('externalOptions').style.display = 'none';
+                document.getElementById('internalOptions').style.display = 'block';
+                updateSummary();
+                validateForm();
+            }
+
+            /**
+             * Obsługa zmiany typu wsporników
+             */
+            function onBracketChange() {
+                const bracketType = document.getElementById('bracketType').value;
+                const contactLink = document.getElementById('bracketContactLink');
+
+                state.config.bracketType = bracketType;
+
+                if (bracketType === 'custom') {
+                    contactLink.style.display = 'block';
+                } else {
+                    contactLink.style.display = 'none';
+                }
+
+                validateForm();
+            }
+
+            /**
+             * Przełącznik pola zawieszenia drabiny
+             */
+            function toggleSuspended() {
+                const checkbox = document.getElementById('suspended');
+                const field = document.getElementById('suspendedField');
+
+                state.config.suspended = checkbox.checked;
+
+                if (checkbox.checked) {
+                    field.classList.add('visible');
+                } else {
+                    field.classList.remove('visible');
+                    document.getElementById('suspendedHeight').value = 0;
+                    state.config.suspendedHeight = 0;
+                }
+
+                validateForm();
+            }
+
+            /**
+             * Walidacja formularza
+             */
+            function validateForm() {
+                const wallHeight = parseFloat(document.getElementById('wallHeight').value);
+                const wallHeightHint = document.getElementById('wallHeightHint');
+                let isValid = true;
+                let progress = 0;
+
+                // Ustal min/max w zależności od typu drabiny
+                let minHeight = 1;
+                let maxHeight = 30;
+
+                // Dla drabiny zewnętrznej bez kosza: min 0.6m
+                if (state.config.purpose === 'external' && state.config.cage === 'no-cage') {
+                    minHeight = 0.6;
+                }
+
+                // Walidacja wysokości ściany
+                if (isNaN(wallHeight) || wallHeight < minHeight) {
+                    isValid = false;
+                    wallHeightHint.textContent = `Podaj wysokość od ${minHeight} do ${maxHeight} m`;
+                    wallHeightHint.classList.add('error');
+                } else if (wallHeight > maxHeight) {
+                    isValid = false;
+                    wallHeightHint.textContent = `Maksymalna wysokość to ${maxHeight} m!`;
+                    wallHeightHint.classList.add('error');
+                } else {
+                    wallHeightHint.textContent = `Zakres: ${minHeight} - ${maxHeight} m`;
+                    wallHeightHint.classList.remove('error');
+                    progress += 50;
+                }
+
+                // Walidacja wysokości zawieszenia (jeśli aktywne)
+                const suspendedInput = document.getElementById('suspendedHeight');
+                const suspendedHint = document.getElementById('suspendedHeightHint');
+
+                if (state.config.purpose === 'external' && document.getElementById('suspended').checked) {
+                    const suspendedHeight = parseFloat(suspendedInput.value) || 0;
+
+                    // Max zawieszenia = wysokość ściany - 0.6m (min długość drabiny)
+                    const maxSuspended = Math.max(0, (wallHeight || 0) - 0.6);
+
+                    // Aktualizuj atrybut max na inpucie
+                    suspendedInput.max = maxSuspended.toFixed(1);
+
+                    if (isNaN(wallHeight) || wallHeight < minHeight) {
+                        // Jeśli wysokość ściany nie jest podana, nie waliduj zawieszenia
+                        suspendedHint.textContent = 'Podaj najpierw wysokość ściany';
+                        suspendedHint.classList.remove('error');
+                    } else if (suspendedHeight < 0) {
+                        isValid = false;
+                        suspendedHint.textContent = 'Wysokość nie może być ujemna';
+                        suspendedHint.classList.add('error');
+                    } else if (suspendedHeight > maxSuspended) {
+                        isValid = false;
+                        suspendedHint.textContent = `Maks. ${maxSuspended.toFixed(1)} m (ściana ${wallHeight}m - min 0.6m drabiny)`;
+                        suspendedHint.classList.add('error');
+                    } else {
+                        suspendedHint.textContent = `Maksymalnie ${maxSuspended.toFixed(1)} m nad poziomem gruntu`;
+                        suspendedHint.classList.remove('error');
+                        progress += 25;
+                    }
+                } else {
+                    // Reset hint gdy checkbox nieaktywny
+                    if (suspendedHint) {
+                        suspendedHint.textContent = 'Podaj najpierw wysokość ściany';
+                        suspendedHint.classList.remove('error');
+                    }
+                    progress += 25;
+                }
+
+                // Dodatkowy progress za opcje
+                if (state.config.bracketType && state.config.bracketType !== 'custom') {
+                    progress += 25;
+                }
+
+                // Aktualizuj progress bar
+                const progressBar = elements.progressBar();
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+
+                // Aktualizuj przycisk
+                const nextButton = elements.nextButton();
+                if (nextButton) {
+                    nextButton.disabled = !isValid;
+                }
+
+                // Aktualizuj kalkulację w czasie rzeczywistym
+                if (isValid) {
+                    updateSpecification();
+                }
+
+                return isValid;
+            }
+
+            /**
+             * Zbieranie danych z formularza
+             */
+            function collectFormData() {
+                state.config.wallHeight = parseFloat(document.getElementById('wallHeight').value);
+                state.config.accessLock = document.getElementById('accessLock')?.checked || false;
+                state.config.suspended = document.getElementById('suspended')?.checked || false;
+                state.config.suspendedHeight = parseFloat(document.getElementById('suspendedHeight')?.value) || 0;
+                state.config.bracketType = document.getElementById('bracketType')?.value || 'short';
+                state.config.mountingType = document.getElementById('mountingType')?.value || 'wall';
+
+                // Wyślij kompletną konfigurację
+                sendMessage('configComplete', state.config);
+            }
+
+            // ============================================
+            // AKTUALIZACJA UI
+            // ============================================
+
+            /**
+             * Aktualizacja całego UI
+             */
+            function updateUI() {
+                const screenInfo = state.screens[state.currentScreen];
+
+                // Aktualizuj nagłówek
+                elements.screenTitle().textContent = screenInfo.title;
+                elements.stepIndicator().textContent = screenInfo.step;
+
+                // Przycisk wstecz
+                elements.backButton().disabled = state.history.length === 0;
+
+                // Aktualizuj podsumowanie końcowe jeśli na ekranie summary
+                if (state.currentScreen === 'summary') {
+                    updateFinalSummary();
+                }
+            }
+
+            /**
+             * Aktualizacja podsumowania konfiguracji
+             */
+            function updateSummary() {
+                const labels = {
+                    purpose: { internal: 'Wewnętrzna', external: 'Zewnętrzna' },
+                    scheme: {
+                        'no-platform': 'Bez podestu',
+                        'with-platform': 'Z podestem (50 cm)',
+                        'attic-passage': 'Przejście przez attykę'
+                    },
+                    cage: { 'no-cage': 'Bez kosza', 'with-cage': 'Z koszem', 'with-cage-full': 'Kosz po całości' }
+                };
+
+                let html = '';
+
+                if (state.config.purpose) {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Przeznaczenie</span>
+                        <span class="value">${labels.purpose[state.config.purpose]}</span>
+                    </div>`;
+                }
+
+                if (state.config.scheme) {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Schemat</span>
+                        <span class="value">${labels.scheme[state.config.scheme]}</span>
+                    </div>`;
+                }
+
+                if (state.config.cage) {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Kosz ochronny</span>
+                        <span class="value">${labels.cage[state.config.cage]}</span>
+                    </div>`;
+                }
+
+                elements.summaryContent().innerHTML = html;
+                elements.configSummary().style.display = html ? 'block' : 'none';
+            }
+
+            /**
+             * Aktualizacja końcowego podsumowania
+             */
+            function updateFinalSummary() {
+                const labels = {
+                    purpose: { internal: 'Wewnętrzna', external: 'Zewnętrzna' },
+                    scheme: {
+                        'no-platform': 'Bez podestu',
+                        'with-platform': 'Z podestem (50 cm)',
+                        'attic-passage': 'Przejście przez attykę'
+                    },
+                    cage: { 'no-cage': 'Bez kosza', 'with-cage': 'Z koszem', 'with-cage-full': 'Kosz po całości' },
+                    bracketType: {
+                        'short': 'Krótkie (16-26 cm)',
+                        'medium': 'Średnie (26-36 cm)',
+                        'long': 'Długie (36-46 cm)',
+                        'custom': 'Niestandardowe'
+                    },
+                    mountingType: {
+                        'wall': 'Do ściany',
+                        'ceiling': 'Do sufitu',
+                        'floor': 'Do podłogi'
+                    }
+                };
+
+                // Generuj specyfikację dla drabiny zewnętrznej (z koszem lub bez)
+                let spec = null;
+                if (state.config.purpose === 'external') {
+                    spec = LadderCalculator.generateSpecification(state.config);
+                }
+
+                let html = '';
+
+                html += `<div class="config-summary-item">
+                    <span class="label">Przeznaczenie</span>
+                    <span class="value">${labels.purpose[state.config.purpose]}</span>
+                </div>`;
+
+                if (state.config.purpose === 'external') {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Schemat</span>
+                        <span class="value">${labels.scheme[state.config.scheme]}</span>
+                    </div>`;
+
+                    html += `<div class="config-summary-item">
+                        <span class="label">Kosz ochronny</span>
+                        <span class="value">${labels.cage[state.config.cage]}</span>
+                    </div>`;
+
+                    html += `<div class="config-summary-item">
+                        <span class="label">Wsporniki</span>
+                        <span class="value">${labels.bracketType[state.config.bracketType]}</span>
+                    </div>`;
+
+                    html += `<div class="config-summary-item">
+                        <span class="label">Blokada dostępu</span>
+                        <span class="value">${state.config.accessLock ? 'Tak' : 'Nie'}</span>
+                    </div>`;
+
+                    if (state.config.suspended) {
+                        html += `<div class="config-summary-item">
+                            <span class="label">Zawieszenie</span>
+                            <span class="value">${state.config.suspendedHeight} m nad ziemią</span>
+                        </div>`;
+                    }
+                } else {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Mocowanie</span>
+                        <span class="value">${labels.mountingType[state.config.mountingType]}</span>
+                    </div>`;
+                }
+
+                html += `<div class="config-summary-item">
+                    <span class="label">Wysokość ściany</span>
+                    <span class="value">${state.config.wallHeight} m</span>
+                </div>`;
+
+                // Dodaj szczegóły kalkulacji dla drabiny zewnętrznej
+                if (spec && spec.valid) {
+                    html += `<div class="config-summary-item">
+                        <span class="label">Ilość szczebli</span>
+                        <span class="value">${spec.summary.rungCount} szt.</span>
+                    </div>`;
+                    html += `<div class="config-summary-item">
+                        <span class="label">Długość drabiny</span>
+                        <span class="value">${spec.summary.ladderLength.toFixed(2)} m</span>
+                    </div>`;
+                    html += `<div class="config-summary-item">
+                        <span class="label">Odl. od ziemi</span>
+                        <span class="value">${spec.summary.distanceFromGround} mm</span>
+                    </div>`;
+                    if (spec.summary.hasCage && spec.summary.cageHoops > 0) {
+                        html += `<div class="config-summary-item">
+                            <span class="label">Obręcze kosza${spec.summary.isFullCage ? ' (pełny)' : ''}</span>
+                            <span class="value">${spec.summary.cageHoops} szt.</span>
+                        </div>`;
+                        if (spec.summary.cageDistanceFromGround !== null) {
+                            html += `<div class="config-summary-item">
+                                <span class="label">Kosz od ziemi</span>
+                                <span class="value">${(spec.summary.cageDistanceFromGround / 1000).toFixed(2)} m</span>
+                            </div>`;
+                        }
+                    }
+                }
+
+                // Zapisz do #summaryParams
+                const summaryParams = document.getElementById('summaryParams');
+                if (summaryParams) {
+                    summaryParams.innerHTML = html;
+                }
+
+                // Aktualizuj tabelę komponentów
+                updateComponentsTable(spec);
+            }
+
+            /**
+             * Aktualizacja tabeli komponentów z edytowalnymi polami
+             */
+            function updateComponentsTable(spec) {
+                const table = document.getElementById('componentsTable');
+                if (!table) return;
+
+                // Jeśli nie ma specyfikacji, pokaż komunikat
+                if (!spec || !spec.valid || !spec.components || spec.components.length === 0) {
+                    table.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                            Kalkulacja komponentów niedostępna dla tej konfiguracji
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Zapisz komponenty w state do późniejszego użycia
+                state.components = spec.components.map(comp => ({
+                    ...comp,
+                    editedQuantity: comp.quantity
+                }));
+
+                let html = '';
+
+                state.components.forEach((comp, idx) => {
+                    html += `
+                        <div class="component-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; ${idx < state.components.length - 1 ? 'border-bottom: 1px solid var(--border);' : ''}">
+                            <div style="flex: 1; min-width: 0; padding-right: 15px;">
+                                <div style="font-size: 0.95rem; color: var(--text-primary); word-wrap: break-word;">${comp.name}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                <input
+                                    type="number"
+                                    class="component-qty-input"
+                                    data-index="${idx}"
+                                    value="${comp.quantity}"
+                                    min="0"
+                                    max="999"
+                                    style="width: 70px; padding: 8px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-size: 1rem; text-align: center;"
+                                    onchange="Configurator.updateComponentQty(${idx}, this.value)"
+                                >
+                                <span style="color: var(--text-muted); font-size: 0.9rem; min-width: 30px;">${comp.unit}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                table.innerHTML = html;
+            }
+
+            /**
+             * Aktualizacja ilości komponentu
+             */
+            function updateComponentQty(index, value) {
+                if (state.components && state.components[index]) {
+                    const qty = parseInt(value) || 0;
+                    state.components[index].editedQuantity = qty;
+                }
+            }
+
+            // ============================================
+            // KOMUNIKACJA IFRAME (postMessage)
+            // ============================================
+
+            /**
+             * Wysyłanie wiadomości do okna nadrzędnego
+             */
+            function sendMessage(type, data) {
+                const message = {
+                    source: 'ladder-configurator',
+                    type: type,
+                    data: data,
+                    timestamp: Date.now()
+                };
+
+                // Wysyłanie do okna nadrzędnego (jeśli jesteśmy w iframe)
+                if (window.parent !== window) {
+                    window.parent.postMessage(message, '*');
+                }
+
+                // Logowanie w konsoli (do debugowania)
+                console.log('Configurator message:', message);
+            }
+
+            /**
+             * Żądanie przekierowania do strony kontaktu
+             */
+            function requestContact(reason) {
+                sendMessage('requestContact', {
+                    reason: reason,
+                    config: state.config
+                });
+            }
+
+            /**
+             * Żądanie wyceny
+             */
+            function requestQuote() {
+                // Dołącz komponenty z edytowanymi ilościami
+                const quoteData = {
+                    config: state.config,
+                    components: state.components || []
+                };
+                sendMessage('requestQuote', quoteData);
+            }
+
+            /**
+             * Nasłuchiwanie wiadomości z okna nadrzędnego
+             */
+            function setupMessageListener() {
+                window.addEventListener('message', function(event) {
+                    // Weryfikacja źródła (w produkcji dodaj sprawdzenie origin)
+                    if (event.data && event.data.target === 'ladder-configurator') {
+                        handleParentMessage(event.data);
+                    }
+                });
+            }
+
+            /**
+             * Obsługa wiadomości od rodzica
+             */
+            function handleParentMessage(message) {
+                switch(message.type) {
+                    case 'setConfig':
+                        // Możliwość ustawienia początkowej konfiguracji
+                        Object.assign(state.config, message.data);
+                        break;
+                    case 'reset':
+                        // Reset konfiguratora
+                        resetConfigurator();
+                        break;
+                    case 'getConfig':
+                        // Zwróć aktualną konfigurację
+                        sendMessage('configResponse', state.config);
+                        break;
+                }
+            }
+
+            /**
+             * Reset konfiguratora do stanu początkowego
+             */
+            function resetConfigurator() {
+                state.history = [];
+                state.components = [];
+                state.config = {
+                    purpose: null,
+                    scheme: null,
+                    cage: null,
+                    wallHeight: null,
+                    bracketType: 'short',
+                    accessLock: false,
+                    suspended: false,
+                    suspendedHeight: 0,
+                    mountingType: 'wall'
+                };
+
+                // Reset wizualny wyborów
+                document.querySelectorAll('.choice-card-large').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+                // Reset formularza
+                document.getElementById('wallHeight').value = '';
+                document.getElementById('accessLock').checked = false;
+                document.getElementById('suspended').checked = false;
+                document.getElementById('suspendedHeight').value = 0;
+                document.getElementById('suspendedField').classList.remove('visible');
+                document.getElementById('bracketType').value = 'short';
+                document.getElementById('bracketContactLink').style.display = 'none';
+
+                goToScreen('purpose', false);
+            }
+
+            // ============================================
+            // INICJALIZACJA
+            // ============================================
+
+            function init() {
+                // Ustaw listener dla przycisku wstecz
+                elements.backButton().addEventListener('click', goBack);
+
+                // Ustaw listener dla wiadomości
+                setupMessageListener();
+
+                // Początkowy stan UI
+                updateUI();
+
+                // Informuj rodzica o gotowości
+                sendMessage('ready', { version: '1.0.0' });
+            }
+
+            // Uruchom po załadowaniu DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            // ============================================
+            // MODUŁ KALKULACJI - DRABINA ZEWNĘTRZNA
+            // ============================================
+
+            const LadderCalculator = {
+                // Stałe
+                RUNG_SPACING: 275, // mm - odstęp między szczeblami
+                MAX_GROUND_DISTANCE: 300, // mm - max odległość ostatniego szczebla od ziemi
+                MIN_HEIGHT: 600, // mm - minimalna wysokość (60cm)
+                MAX_HEIGHT: 30000, // mm - maksymalna wysokość (30m)
+                RUNGS_PER_MODULE: 7, // szczebli w module
+
+                // Stałe dla kosza ochronnego
+                CAGE_START_OFFSET: 1075, // mm - odległość środka pierwszej obręczy od górnego szczebla
+                CAGE_HOOP_SPACING: 640, // mm - rozstaw między obręczami
+                CAGE_MIN_HEIGHT: 2200, // mm - minimalna wysokość ostatniej obręczy od ziemi
+                CAGE_MAX_HEIGHT: 3000, // mm - maksymalna wysokość ostatniej obręczy od ziemi
+
+                // Ilość otworów na obręcze w modułach
+                CAGE_HOLES: {
+                    handrails: 2,      // poręcze asekuracyjne
+                    startLadder: 3,    // drabina początkowa
+                    repeatLadder: 3,   // drabina powielana
+                    endLadder: {       // drabina końcowa wg ilości szczebli
+                        7: 3, 6: 3,
+                        5: 2, 4: 2,
+                        3: 1, 2: 1,
+                        1: 0
+                    }
+                },
+
+                /**
+                 * Oblicz ilość szczebli dla drabiny
+                 * @param {number} wallHeight - wysokość ściany w metrach
+                 * @param {boolean} suspended - czy drabina zawieszona
+                 * @param {number} suspendedHeight - wysokość zawieszenia w metrach
+                 * @returns {object} - dane o szczebplach
+                 */
+                calculateRungs(wallHeight, suspended = false, suspendedHeight = 0) {
+                    const heightMm = wallHeight * 1000; // konwersja na mm
+                    const suspendedMm = suspendedHeight * 1000;
+
+                    // Walidacja
+                    if (heightMm < this.MIN_HEIGHT || heightMm > this.MAX_HEIGHT) {
+                        return { valid: false, error: 'Wysokość poza zakresem (0.6m - 30m)' };
+                    }
+
+                    // Pierwszy szczebel na krawędzi dachu, ostatni max 300mm od ziemi
+                    // (lub od poziomu zawieszenia jeśli zawieszona)
+                    const groundLevel = suspended ? suspendedMm : 0;
+                    const maxLastRungHeight = groundLevel + this.MAX_GROUND_DISTANCE;
+
+                    // Oblicz minimalną ilość szczebli
+                    // Szczeble od góry (0) w dół co RUNG_SPACING
+                    // Ostatni szczebel musi być na wysokości <= maxLastRungHeight
+                    // Wysokość n-tego szczebla = heightMm - (n-1) * RUNG_SPACING
+                    // Musi być >= groundLevel (nie może być pod ziemią/poziomem zawieszenia)
+                    // I ostatni musi być <= maxLastRungHeight
+
+                    let rungCount = 1; // minimum 1 szczebel na górze
+                    let lastRungHeight = heightMm; // pierwszy szczebel na krawędzi dachu
+
+                    // Dodawaj szczeble aż ostatni będzie w zakresie 0-300mm od ziemi/zawieszenia
+                    while (lastRungHeight > maxLastRungHeight) {
+                        rungCount++;
+                        lastRungHeight = heightMm - (rungCount - 1) * this.RUNG_SPACING;
+                    }
+
+                    // Sprawdź czy można dodać jeszcze jeden szczebel
+                    // (przydatne przy zawieszeniu - szczebel nie może być poniżej poziomu zawieszenia)
+                    const nextRungHeight = heightMm - rungCount * this.RUNG_SPACING;
+                    let canAddOne = false;
+                    if (nextRungHeight >= groundLevel) {
+                        // Można dodać jeszcze jeden szczebel - będzie bliżej ziemi ale nad nią
+                        canAddOne = true;
+                        // Dodajemy jeśli to daje lepszą ergonomię (szczebel bliżej ziemi)
+                        if (nextRungHeight >= groundLevel) {
+                            rungCount++;
+                            lastRungHeight = nextRungHeight;
+                        }
+                    }
+
+                    // Długość drabiny (od pierwszego do ostatniego szczebla)
+                    const ladderLength = (rungCount - 1) * this.RUNG_SPACING;
+                    const distanceFromGround = lastRungHeight - groundLevel;
+
+                    return {
+                        valid: true,
+                        rungCount: rungCount,
+                        ladderLengthMm: ladderLength,
+                        ladderLengthM: ladderLength / 1000,
+                        lastRungHeightMm: lastRungHeight,
+                        distanceFromGroundMm: distanceFromGround,
+                        suspended: suspended,
+                        suspendedHeightMm: suspendedMm
+                    };
+                },
+
+                /**
+                 * Oblicz moduły drabiny na podstawie ilości szczebli
+                 * @param {number} rungCount - ilość szczebli
+                 * @returns {object} - lista modułów
+                 */
+                calculateModules(rungCount) {
+                    const modules = {
+                        // Stałe elementy
+                        handrails: 2, // poręcze asekuracyjne
+                        handrailConnectors: 2, // łączniki poręczy asekuracyjnych
+
+                        // Moduły drabin
+                        startLadder7: 0, // drabina początkowa 7 szczeblowa
+                        repeatLadder7: 0, // drabina powielana 7 szczeblowa
+                        endLadder: { count: 0, rungs: 0 }, // drabina końcowa (1-7 szczebli)
+
+                        // Mocowania
+                        clampMounts: 0, // uchwyty ściskane (w parach)
+                        connectionMounts: 0, // elementy łącząco-montażowe (w parach)
+                        brackets: 0, // wsporniki (w parach lewa+prawa)
+                    };
+
+                    if (rungCount <= 7) {
+                        // Tylko drabina końcowa
+                        modules.endLadder = { count: 1, rungs: rungCount };
+                        modules.clampMounts = 2; // 2 pary = 4 szt.
+                        modules.brackets = 2; // 2 pary = 4 szt.
+                    } else {
+                        // Drabina początkowa + powielane + końcowa
+                        modules.startLadder7 = 1;
+
+                        const remaining = rungCount - 7;
+                        let repeatCount = Math.floor(remaining / 7);
+                        let endRungs = remaining % 7;
+
+                        // Jeśli reszta = 0, to zamiast końcowej x0 dajemy x7 i zmniejszamy powielane
+                        if (endRungs === 0) {
+                            endRungs = 7;
+                            repeatCount = Math.max(0, repeatCount - 1);
+                        }
+
+                        modules.repeatLadder7 = repeatCount;
+                        modules.endLadder = { count: 1, rungs: endRungs };
+
+                        // Mocowania dla początkowej: 2 pary łącząco-montażowe + 2 pary wsporników
+                        modules.connectionMounts = 2;
+                        modules.brackets = 2;
+
+                        // Mocowania dla każdej powielanej: 1 para łącząco-montażowa + 1 para wsporników
+                        modules.connectionMounts += repeatCount;
+                        modules.brackets += repeatCount;
+
+                        // Jeśli końcowa >= 4 szczebli: dodatkowe uchwyty ściskane i wsporniki
+                        if (endRungs >= 4) {
+                            modules.clampMounts = 1; // 1 para
+                            modules.brackets += 1; // 1 para
+                        }
+                    }
+
+                    return modules;
+                },
+
+                /**
+                 * Oblicz ilość obręczy kosza ochronnego
+                 * @param {number} wallHeightMm - wysokość ściany w mm
+                 * @param {boolean} suspended - czy drabina zawieszona
+                 * @param {number} suspendedHeightMm - wysokość zawieszenia w mm
+                 * @param {object} modules - obliczone moduły drabiny
+                 * @param {boolean} fullCage - czy kosz po całości
+                 * @returns {object} - dane o obręczach
+                 */
+                calculateCageHoops(wallHeightMm, suspended, suspendedHeightMm, modules, fullCage = false) {
+                    // Środek pierwszej obręczy jest 107.5cm nad górnym szczeblem
+                    const firstHoopHeight = wallHeightMm + this.CAGE_START_OFFSET;
+
+                    // Poziom gruntu (lub zawieszenia)
+                    const groundLevel = suspended ? suspendedHeightMm : 0;
+
+                    // Oblicz maksymalną ilość otworów dostępnych w modułach
+                    let maxHolesAvailable = this.CAGE_HOLES.handrails; // poręcze zawsze mają 2
+
+                    if (modules.startLadder7 > 0) {
+                        maxHolesAvailable += this.CAGE_HOLES.startLadder;
+                    }
+
+                    maxHolesAvailable += modules.repeatLadder7 * this.CAGE_HOLES.repeatLadder;
+
+                    if (modules.endLadder.count > 0) {
+                        const endRungs = modules.endLadder.rungs;
+                        maxHolesAvailable += this.CAGE_HOLES.endLadder[endRungs] || 0;
+                    }
+
+                    // Oblicz obręcze idąc w dół od pierwszej
+                    let hoopCount = 0;
+                    let hoopHeights = [];
+                    let currentHeight = firstHoopHeight;
+
+                    if (fullCage) {
+                        // Kosz po całości: używamy wszystkich dostępnych otworów
+                        while (hoopCount < maxHolesAvailable && currentHeight > groundLevel) {
+                            hoopHeights.push(currentHeight);
+                            hoopCount++;
+                            currentHeight -= this.CAGE_HOOP_SPACING;
+                        }
+                    } else if (suspended) {
+                        // Dla drabiny zawieszonej: liczymy tyle obręczy ile mamy otworów
+                        // ale nie więcej niż się zmieści do poziomu zawieszenia
+                        while (hoopCount < maxHolesAvailable) {
+                            // Sprawdź czy obręcz nie będzie poniżej poziomu zawieszenia
+                            if (currentHeight < groundLevel) {
+                                break;
+                            }
+                            hoopHeights.push(currentHeight);
+                            hoopCount++;
+                            currentHeight -= this.CAGE_HOOP_SPACING;
+                        }
+                    } else {
+                        // Dla drabiny na ziemi: ostatnia obręcz między 2.2m a 3m od ziemi
+                        while (currentHeight >= this.CAGE_MIN_HEIGHT) {
+                            hoopHeights.push(currentHeight);
+                            hoopCount++;
+                            currentHeight -= this.CAGE_HOOP_SPACING;
+                        }
+                    }
+
+                    // Minimum 2 obręcze - jeśli tylko 1, to traktujemy jako 0
+                    if (hoopCount === 1) {
+                        hoopCount = 0;
+                        hoopHeights = [];
+                    }
+
+                    // Oblicz odległość ostatniej obręczy od ziemi/zawieszenia
+                    const lastHoopHeight = hoopHeights.length > 0 ? hoopHeights[hoopHeights.length - 1] : null;
+                    const cageDistanceFromGround = lastHoopHeight !== null ? lastHoopHeight - groundLevel : null;
+
+                    return {
+                        count: hoopCount,
+                        heights: hoopHeights,
+                        firstHoopHeight: firstHoopHeight,
+                        lastHoopHeight: lastHoopHeight,
+                        cageDistanceFromGround: cageDistanceFromGround,
+                        maxHolesAvailable: maxHolesAvailable,
+                        suspended: suspended,
+                        fullCage: fullCage
+                    };
+                },
+
+                /**
+                 * Oblicz kątowniki łączące kosz
+                 * Zasada: pierwszy kątownik zajmuje pełne otwory, kolejne na zakładkę (overlap 1)
+                 * Preferujemy największe kątowniki (4→3→2)
+                 * Wynik mnożymy przez 5 (5 kątowników dookoła obwodu)
+                 * @param {number} hoopCount - ilość obręczy
+                 * @returns {object} - ilości kątowników
+                 */
+                calculateCageBrackets(hoopCount) {
+                    if (hoopCount < 2) {
+                        return { bracket4: 0, bracket3: 0, bracket2: 0 };
+                    }
+
+                    let hoopsLeft = hoopCount;
+                    let bracket4 = 0;
+                    let bracket3 = 0;
+                    let bracket2 = 0;
+
+                    // Pierwszy kątownik - zajmuje pełne otwory
+                    if (hoopsLeft >= 4) {
+                        bracket4 = 1;
+                        hoopsLeft -= 4;
+                    } else if (hoopsLeft >= 3) {
+                        bracket3 = 1;
+                        hoopsLeft -= 3;
+                    } else if (hoopsLeft >= 2) {
+                        bracket2 = 1;
+                        hoopsLeft -= 2;
+                    }
+
+                    // Kolejne kątowniki na zakładkę (overlap 1 otwór)
+                    // 4-otworowy dodaje 3 nowe otwory
+                    // 3-otworowy dodaje 2 nowe otwory
+                    // 2-otworowy dodaje 1 nowy otwór
+                    while (hoopsLeft > 0) {
+                        if (hoopsLeft >= 3) {
+                            bracket4 += 1;
+                            hoopsLeft -= 3;
+                        } else if (hoopsLeft >= 2) {
+                            bracket3 += 1;
+                            hoopsLeft -= 2;
+                        } else {
+                            bracket2 += 1;
+                            hoopsLeft -= 1;
+                        }
+                    }
+
+                    // Mnożymy przez 5 (5 kątowników dookoła obwodu kosza)
+                    return {
+                        bracket4: bracket4 * 5,
+                        bracket3: bracket3 * 5,
+                        bracket2: bracket2 * 5
+                    };
+                },
+
+                /**
+                 * Generuj pełną specyfikację drabiny
+                 * @param {object} config - konfiguracja drabiny
+                 * @returns {object} - pełna specyfikacja
+                 */
+                generateSpecification(config) {
+                    // Tylko dla drabiny zewnętrznej
+                    if (config.purpose !== 'external') {
+                        return { valid: false, error: 'Ta kalkulacja dotyczy tylko drabiny zewnętrznej' };
+                    }
+
+                    // Oblicz szczeble
+                    const rungs = this.calculateRungs(
+                        config.wallHeight,
+                        config.suspended,
+                        config.suspendedHeight
+                    );
+
+                    if (!rungs.valid) {
+                        return rungs;
+                    }
+
+                    // Oblicz moduły
+                    const modules = this.calculateModules(rungs.rungCount);
+
+                    // Generuj listę komponentów
+                    const components = [];
+
+                    // Stałe elementy
+                    components.push({
+                        name: 'Poręcze asekuracyjne',
+                        quantity: modules.handrails,
+                        unit: 'szt.'
+                    });
+                    components.push({
+                        name: 'Łączniki poręczy asekuracyjnych',
+                        quantity: modules.handrailConnectors,
+                        unit: 'szt.'
+                    });
+
+                    // Moduły drabin
+                    if (modules.startLadder7 > 0) {
+                        components.push({
+                            name: 'Drabina początkowa 7-szczeblowa',
+                            quantity: modules.startLadder7,
+                            unit: 'szt.'
+                        });
+                    }
+
+                    if (modules.repeatLadder7 > 0) {
+                        components.push({
+                            name: 'Drabina powielana 7-szczeblowa',
+                            quantity: modules.repeatLadder7,
+                            unit: 'szt.'
+                        });
+                    }
+
+                    if (modules.endLadder.count > 0) {
+                        components.push({
+                            name: `Drabina końcowa ${modules.endLadder.rungs}-szczeblowa`,
+                            quantity: modules.endLadder.count,
+                            unit: 'szt.'
+                        });
+                    }
+
+                    // Mocowania
+                    if (modules.clampMounts > 0) {
+                        components.push({
+                            name: 'Uchwyty montażowo-ściskane (para L+P)',
+                            quantity: modules.clampMounts,
+                            unit: 'par'
+                        });
+                    }
+
+                    if (modules.connectionMounts > 0) {
+                        components.push({
+                            name: 'Elementy łącząco-montażowe (para L+P)',
+                            quantity: modules.connectionMounts,
+                            unit: 'par'
+                        });
+                    }
+
+                    if (modules.brackets > 0) {
+                        // Mapowanie typów wsporników na zakresy
+                        const bracketLabels = {
+                            'short': '16-26 cm',
+                            'medium': '26-36 cm',
+                            'long': '36-46 cm',
+                            'custom': 'niestandardowe'
+                        };
+                        const bracketSize = bracketLabels[config.bracketType] || '16-26 cm';
+
+                        components.push({
+                            name: `Wsporniki ${bracketSize} (para L+P)`,
+                            quantity: modules.brackets,
+                            unit: 'par'
+                        });
+                    }
+
+                    // Oblicz i dodaj kosz ochronny jeśli wybrany
+                    let cageData = null;
+                    const hasCage = config.cage === 'with-cage' || config.cage === 'with-cage-full';
+                    const isFullCage = config.cage === 'with-cage-full';
+
+                    if (hasCage) {
+                        cageData = this.calculateCageHoops(
+                            rungs.lastRungHeightMm + (rungs.rungCount - 1) * this.RUNG_SPACING, // wallHeight w mm
+                            config.suspended,
+                            config.suspendedHeight * 1000,
+                            modules,
+                            isFullCage
+                        );
+
+                        if (cageData.count > 0) {
+                            components.push({
+                                name: 'Obręcze kosza ochronnego',
+                                quantity: cageData.count,
+                                unit: 'szt.'
+                            });
+
+                            // Oblicz kątowniki łączące kosz
+                            const brackets = this.calculateCageBrackets(cageData.count);
+                            cageData.brackets = brackets;
+
+                            if (brackets.bracket4 > 0) {
+                                components.push({
+                                    name: 'Kątownik łączący 4-otworowy',
+                                    quantity: brackets.bracket4,
+                                    unit: 'szt.'
+                                });
+                            }
+                            if (brackets.bracket3 > 0) {
+                                components.push({
+                                    name: 'Kątownik łączący 3-otworowy',
+                                    quantity: brackets.bracket3,
+                                    unit: 'szt.'
+                                });
+                            }
+                            if (brackets.bracket2 > 0) {
+                                components.push({
+                                    name: 'Kątownik łączący 2-otworowy',
+                                    quantity: brackets.bracket2,
+                                    unit: 'szt.'
+                                });
+                            }
+                        }
+                    }
+
+                    return {
+                        valid: true,
+                        config: config,
+                        rungs: rungs,
+                        modules: modules,
+                        cage: cageData,
+                        components: components,
+                        summary: {
+                            wallHeight: config.wallHeight,
+                            ladderLength: rungs.ladderLengthM,
+                            rungCount: rungs.rungCount,
+                            distanceFromGround: rungs.distanceFromGroundMm,
+                            suspended: rungs.suspended,
+                            suspendedHeight: config.suspendedHeight,
+                            hasCage: hasCage,
+                            isFullCage: isFullCage,
+                            cageHoops: cageData ? cageData.count : 0,
+                            cageDistanceFromGround: cageData ? cageData.cageDistanceFromGround : null
+                        }
+                    };
+                }
+            };
+
+            /**
+             * Aktualizuj wizualizację specyfikacji
+             */
+            function updateSpecification() {
+                // Tylko dla drabiny zewnętrznej
+                if (state.config.purpose !== 'external') {
+                    return;
+                }
+
+                const wallHeight = parseFloat(document.getElementById('wallHeight').value);
+                // Dla drabiny bez kosza min 0.6m, z koszem min 1m (standardowo)
+                const minHeight = state.config.cage === 'no-cage' ? 0.6 : 1;
+                if (isNaN(wallHeight) || wallHeight < minHeight) {
+                    return;
+                }
+
+                const suspended = document.getElementById('suspended')?.checked || false;
+                const suspendedHeight = parseFloat(document.getElementById('suspendedHeight')?.value) || 0;
+
+                const spec = LadderCalculator.generateSpecification({
+                    purpose: state.config.purpose,
+                    cage: state.config.cage,
+                    scheme: state.config.scheme,
+                    wallHeight: wallHeight,
+                    suspended: suspended,
+                    suspendedHeight: suspendedHeight,
+                    bracketType: state.config.bracketType
+                });
+
+                if (spec.valid) {
+                    updateVisualizationWithSpec(spec);
+                }
+            }
+
+            /**
+             * Aktualizuj panel wizualizacji ze specyfikacją
+             */
+            function updateVisualizationWithSpec(spec) {
+                const area = document.getElementById('visualizationArea');
+                if (!area || state.currentScreen !== 'params') return;
+
+                let html = `
+                    <div style="text-align: left; width: 100%; max-width: 350px;">
+                        <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-primary);">
+                            Kalkulacja drabiny
+                        </h3>
+                        <div style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--text-muted);">Wysokość ściany:</span>
+                                <span style="font-weight: 500;">${spec.summary.wallHeight} m</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--text-muted);">Ilość szczebli:</span>
+                                <span style="font-weight: 500;">${spec.summary.rungCount} szt.</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--text-muted);">Długość drabiny:</span>
+                                <span style="font-weight: 500;">${spec.summary.ladderLength.toFixed(2)} m</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-muted);">Odl. od ziemi:</span>
+                                <span style="font-weight: 500;">${spec.summary.distanceFromGround} mm</span>
+                            </div>
+                            ${spec.summary.suspended ? `
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+                                <span style="color: var(--warning);">Zawieszona:</span>
+                                <span style="font-weight: 500; color: var(--warning);">${spec.summary.suspendedHeight} m</span>
+                            </div>
+                            ` : ''}
+                            ${spec.summary.hasCage ? `
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+                                <span style="color: var(--success);">Obręcze kosza${spec.summary.isFullCage ? ' (pełny)' : ''}:</span>
+                                <span style="font-weight: 500; color: var(--success);">${spec.summary.cageHoops} szt.</span>
+                            </div>
+                            ${spec.summary.cageDistanceFromGround !== null ? `
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                <span style="color: var(--success);">Kosz od ziemi:</span>
+                                <span style="font-weight: 500; color: var(--success);">${(spec.summary.cageDistanceFromGround / 1000).toFixed(2)} m</span>
+                            </div>
+                            ` : ''}
+                            ` : ''}
+                        </div>
+                        <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">
+                            Lista komponentów
+                        </h4>
+                        <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; font-size: 0.9rem;">
+                `;
+
+                spec.components.forEach((comp, idx) => {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; ${idx < spec.components.length - 1 ? 'border-bottom: 1px solid var(--border);' : ''}">
+                            <span style="color: var(--text-secondary);">${comp.name}</span>
+                            <span style="font-weight: 500; white-space: nowrap; margin-left: 10px;">${comp.quantity} ${comp.unit}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+
+                area.innerHTML = html;
+            }
+
+            // ============================================
+            // PUBLICZNE API
+            // ============================================
+            return {
+                selectPurpose,
+                selectScheme,
+                selectCage,
+                validateForm,
+                toggleSuspended,
+                onBracketChange,
+                nextStep,
+                requestContact,
+                requestQuote,
+                goBack,
+                reset: resetConfigurator,
+                updateSpecification,
+                updateComponentQty,
+                LadderCalculator,
+                getConfig: () => state.config,
+                getComponents: () => state.components,
+                getState: () => state
+            };
+        })();
+    </script>
+</body>
+</html>
