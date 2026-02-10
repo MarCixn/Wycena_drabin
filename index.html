@@ -226,11 +226,52 @@
             font-size: 12px;
             cursor: pointer;
         }
+        /* Responsive styles for mobile */
+        @media (max-width: 480px) {
+            #ladderSelector {
+                left: 10px !important;
+                max-width: calc(100vw - 20px);
+            }
+            #laddersContainer {
+                flex-direction: column !important;
+            }
+            #ladder1Panel, #ladder2Panel {
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+            #controls {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 5px !important;
+            }
+            #controls .btn {
+                margin-bottom: 3px !important;
+            }
+            #atticControlsTop {
+                right: 5px !important;
+                top: 5px !important;
+            }
+            #atticControlsTop .btn {
+                padding: 6px !important;
+                font-size: 11px !important;
+            }
+            #togglePanelsBtn {
+                padding: 6px 10px !important;
+                font-size: 14px !important;
+            }
+            #info {
+                max-width: 200px !important;
+                font-size: 11px !important;
+                padding: 8px !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="container"></div>
     <div id="info">
+        <button id="closeInfo" style="position: absolute; top: 3px; right: 5px; background: none; border: none; color: white; font-size: 14px; cursor: pointer; opacity: 0.7;">&times;</button>
         <strong>Drabinka przemysłowa</strong><br>
         Telefon:<br>
         - 1 palec: obrot<br>
@@ -249,84 +290,66 @@
         <button class="btn btn-tech" id="sciskaneBtn" title="Uchwyty ściskane - kliknij aby dodać">🔧</button>
     </div>
     <div id="measureResult" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: lime; padding: 20px; border-radius: 10px; border: 2px solid lime; font-size: 24px; font-weight: bold; display: none; z-index: 300;"></div>
+    <!-- Przycisk oczka do chowania/pokazywania paneli -->
+    <button id="togglePanelsBtn" title="Pokaż/ukryj panele" style="position: fixed; bottom: 10px; left: 10px; z-index: 101; background: rgba(0,0,0,0.85); border: 2px solid white; border-radius: 8px; padding: 8px 12px; color: white; font-size: 16px; cursor: pointer;">👁‍🗨</button>
+
+    <!-- Zunifikowany panel dolny lewy -->
     <div id="ladderSelector">
-        <select id="ladderSelect">
-            <option value="0">Brak końcowej drabiny</option>
-            <option value="1">Drabina x1 (175mm)</option>
-            <option value="2">Drabina x2 (450mm)</option>
-            <option value="3">Drabina x3 (725mm)</option>
-            <option value="4">Drabina x4 (1000mm)</option>
-            <option value="5">Drabina x5 (1275mm)</option>
-            <option value="6">Drabina x6 (1550mm)</option>
-            <option value="7alt">Drabina x7 ALT (1825mm)</option>
-        </select>
-        <div style="margin-top: 10px;">
-            <select id="handrailSelect" style="padding: 10px 15px; background: rgba(0, 0, 0, 0.8); color: white; border: 2px solid white; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;">
+        <div id="laddersContainer" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <!-- Panel Drabiny 1 (zawsze widoczny) -->
+            <div id="ladder1Panel" style="background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid #4CAF50; min-width: 130px;">
+                <div id="ladder1Title" style="color: #4CAF50; font-weight: bold; text-align: center; margin-bottom: 5px; font-size: 12px; display: none;">Drabina 1</div>
+                <select id="ladderSelect" style="width: 100%; padding: 6px; background: #222; color: white; border: 1px solid #4CAF50; border-radius: 4px; font-size: 12px; margin-bottom: 5px;">
+                    <option value="0">Brak końcowej</option>
+                    <option value="1">x1 (175mm)</option>
+                    <option value="2">x2 (450mm)</option>
+                    <option value="3">x3 (725mm)</option>
+                    <option value="4">x4 (1000mm)</option>
+                    <option value="5">x5 (1275mm)</option>
+                    <option value="6">x6 (1550mm)</option>
+                    <option value="7alt">x7 ALT (1825mm)</option>
+                </select>
+                <div id="connectorList" style="max-height: 150px; overflow-y: auto; font-size: 11px;"></div>
+            </div>
+            <!-- Panel Drabiny 2 (widoczny tylko w trybie attyki) -->
+            <div id="ladder2Panel" style="display: none; background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid #2196F3; min-width: 130px;">
+                <div style="color: #2196F3; font-weight: bold; text-align: center; margin-bottom: 5px; font-size: 12px;">Drabina 2</div>
+                <select id="ladderSelect2" style="width: 100%; padding: 6px; background: #222; color: white; border: 1px solid #2196F3; border-radius: 4px; font-size: 12px; margin-bottom: 5px;">
+                    <option value="0">Brak końcowej</option>
+                    <option value="1">x1 (175mm)</option>
+                    <option value="2">x2 (450mm)</option>
+                    <option value="3">x3 (725mm)</option>
+                    <option value="4">x4 (1000mm)</option>
+                    <option value="5">x5 (1275mm)</option>
+                    <option value="6">x6 (1550mm)</option>
+                    <option value="7alt">x7 ALT (1825mm)</option>
+                </select>
+                <div id="connectorList2" style="max-height: 150px; overflow-y: auto; font-size: 11px;"></div>
+            </div>
+        </div>
+        <!-- Wybór poręczy - zawsze na dole -->
+        <div style="margin-top: 8px;">
+            <select id="handrailSelect" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.85); color: white; border: 2px solid white; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">
                 <option value="none">Brak poręczy</option>
                 <option value="safety">Poręcze asekuracyjne</option>
                 <option value="attic">Przejście przez attykę</option>
             </select>
         </div>
-        <div id="connectorList" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
     </div>
 
-    <!-- Kontrolki dla attyki - przyciski u góry (prawy górny róg jak standardowe) -->
+    <!-- Kontrolki dla attyki - przyciski u góry (prawy górny róg) -->
     <div id="atticControlsTop" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 100;">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
-            <button class="btn" id="add7Btn2" title="Dodaj drabinę x7 (Drabina 2)" style="margin-bottom: 0;">+7</button>
-            <button class="btn" id="add7Btn1" title="Dodaj drabinę x7 (Drabina 1)" style="margin-bottom: 0;">+7</button>
-            <button class="btn btn-remove" id="remove7Btn2" title="Usuń drabinę x7 (Drabina 2)" style="margin-bottom: 0;">-7</button>
-            <button class="btn btn-remove" id="remove7Btn1" title="Usuń drabinę x7 (Drabina 1)" style="margin-bottom: 0;">-7</button>
+            <button class="btn" id="add7Btn2" title="Dodaj x7 (Drabina 2)" style="margin-bottom: 0; font-size: 12px; padding: 8px;">+7 <span style="font-size:9px;">D2</span></button>
+            <button class="btn" id="add7Btn1" title="Dodaj x7 (Drabina 1)" style="margin-bottom: 0; font-size: 12px; padding: 8px;">+7 <span style="font-size:9px;">D1</span></button>
+            <button class="btn btn-remove" id="remove7Btn2" title="Usuń x7 (Drabina 2)" style="margin-bottom: 0; font-size: 12px; padding: 8px;">-7 <span style="font-size:9px;">D2</span></button>
+            <button class="btn btn-remove" id="remove7Btn1" title="Usuń x7 (Drabina 1)" style="margin-bottom: 0; font-size: 12px; padding: 8px;">-7 <span style="font-size:9px;">D1</span></button>
             <div></div>
             <button class="btn btn-tech" id="techBtn2" title="Rysunek techniczny" style="margin-bottom: 0;">📐</button>
             <div></div>
             <button class="btn btn-tech" id="measureBtn2" title="Miarka" style="margin-bottom: 0;">📏</button>
             <div></div>
             <button class="btn btn-tech" id="sciskaneBtn2" title="Uchwyty ściskane" style="margin-bottom: 0;">🔧</button>
-        </div>
-    </div>
-
-    <!-- Panel dolny lewy dla attyki - listy i dropdowny -->
-    <div id="atticControlsBottom" style="display: none; position: fixed; bottom: 10px; left: 10px; z-index: 100;">
-        <div style="display: flex; gap: 10px;">
-            <!-- Drabina 1 -->
-            <div style="background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid #4CAF50; min-width: 140px;">
-                <div style="color: #4CAF50; font-weight: bold; text-align: center; margin-bottom: 5px; font-size: 12px;">Drabina 1</div>
-                <select id="ladderSelect1" style="width: 100%; padding: 4px; background: #222; color: white; border: 1px solid #4CAF50; border-radius: 4px; font-size: 11px; margin-bottom: 5px;">
-                    <option value="0">Brak końcowej</option>
-                    <option value="1">x1 (175mm)</option>
-                    <option value="2">x2 (450mm)</option>
-                    <option value="3">x3 (725mm)</option>
-                    <option value="4">x4 (1000mm)</option>
-                    <option value="5">x5 (1275mm)</option>
-                    <option value="6">x6 (1550mm)</option>
-                    <option value="7alt">x7 ALT (1825mm)</option>
-                </select>
-                <div id="connectorList1" style="max-height: 120px; overflow-y: auto; font-size: 11px;"></div>
-            </div>
-            <!-- Drabina 2 -->
-            <div style="background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid #2196F3; min-width: 140px;">
-                <div style="color: #2196F3; font-weight: bold; text-align: center; margin-bottom: 5px; font-size: 12px;">Drabina 2</div>
-                <select id="ladderSelect2" style="width: 100%; padding: 4px; background: #222; color: white; border: 1px solid #2196F3; border-radius: 4px; font-size: 11px; margin-bottom: 5px;">
-                    <option value="0">Brak końcowej</option>
-                    <option value="1">x1 (175mm)</option>
-                    <option value="2">x2 (450mm)</option>
-                    <option value="3">x3 (725mm)</option>
-                    <option value="4">x4 (1000mm)</option>
-                    <option value="5">x5 (1275mm)</option>
-                    <option value="6">x6 (1550mm)</option>
-                    <option value="7alt">x7 ALT (1825mm)</option>
-                </select>
-                <div id="connectorList2" style="max-height: 120px; overflow-y: auto; font-size: 11px;"></div>
-            </div>
-            <!-- Wybór poręczy -->
-            <div style="background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid white;">
-                <select id="handrailSelect2" style="padding: 5px; background: #222; color: white; border: 1px solid white; border-radius: 4px; font-size: 11px;">
-                    <option value="none">Brak poręczy</option>
-                    <option value="safety">Poręcze asekuracyjne</option>
-                    <option value="attic" selected>Przejście przez attykę</option>
-                </select>
-            </div>
         </div>
     </div>
     <div id="status">Ladowanie...</div>
@@ -1540,32 +1563,34 @@
 
             // Funkcja aktualizująca listę łączników w UI
             function updateConnectorList() {
-                // Standardowa lista (dla trybu bez attyki)
-                var listContainer = document.getElementById('connectorList');
-                if (listContainer) {
-                    var currentConnectorTypes = getConnectorTypesForLadder(currentLadder);
-                    var html = '';
-                    for (var i = 0; i < currentConnectorTypes.length; i++) {
-                        var label = (i === 0 && (handrailType === 'safety' || handrailType === 'attic')) ? 'Górna para' : 'Łączenie ' + (i + 1);
-                        if (handrailType === 'safety' && i === 0) {
-                            html += '<div class="connector-item"><span>' + label + ':</span> <span>Uchwyt poręczy</span></div>';
-                        } else {
-                            html += '<div class="connector-item">';
-                            html += '<span>' + label + ':</span> ';
-                            html += '<select onchange="changeConnectorType(' + i + ', this.value, ' + currentLadder + ')">';
-                            html += '<option value="uchwyt"' + (currentConnectorTypes[i] === 'uchwyt' ? ' selected' : '') + '>Uchwyt</option>';
-                            html += '<option value="lacznik"' + (currentConnectorTypes[i] === 'lacznik' ? ' selected' : '') + '>Łącznik</option>';
-                            html += '</select>';
-                            html += '</div>';
+                // Standardowa lista (tylko dla trybu BEZ attyki)
+                if (handrailType !== 'attic') {
+                    var listContainer = document.getElementById('connectorList');
+                    if (listContainer) {
+                        var currentConnectorTypes = getConnectorTypesForLadder(currentLadder);
+                        var html = '';
+                        for (var i = 0; i < currentConnectorTypes.length; i++) {
+                            var label = (i === 0 && handrailType === 'safety') ? 'Górna para' : 'Łączenie ' + (i + 1);
+                            if (handrailType === 'safety' && i === 0) {
+                                html += '<div class="connector-item"><span>' + label + ':</span> <span>Uchwyt poręczy</span></div>';
+                            } else {
+                                html += '<div class="connector-item">';
+                                html += '<span>' + label + ':</span> ';
+                                html += '<select onchange="changeConnectorType(' + i + ', this.value, ' + currentLadder + ')">';
+                                html += '<option value="uchwyt"' + (currentConnectorTypes[i] === 'uchwyt' ? ' selected' : '') + '>Uchwyt</option>';
+                                html += '<option value="lacznik"' + (currentConnectorTypes[i] === 'lacznik' ? ' selected' : '') + '>Łącznik</option>';
+                                html += '</select>';
+                                html += '</div>';
+                            }
                         }
+                        listContainer.innerHTML = html;
                     }
-                    listContainer.innerHTML = html;
                 }
 
-                // Listy dla trybu attyki
+                // Listy dla trybu attyki (tylko gdy attyka włączona)
                 if (handrailType === 'attic') {
-                    // Lista dla Drabiny 1
-                    var list1 = document.getElementById('connectorList1');
+                    // Lista dla Drabiny 1 (używa tego samego elementu co tryb standardowy)
+                    var list1 = document.getElementById('connectorList');
                     if (list1) {
                         var types1 = getConnectorTypesForLadder(1);
                         var html1 = '';
@@ -1653,84 +1678,76 @@
                 createLadder();
             }
             
-            // Zmiana końcowej drabinki
+            // Zmiana końcowej drabinki (panel Drabina 1)
             document.getElementById('ladderSelect').addEventListener('change', function(e) {
-                var hadKoncowa = (finalLadderRungs !== 0);
-                var oldKoncowaHeight = getKoncowaHeight();  // Zapisz starą wysokość przed zmianą
-
                 var value = e.target.value;
-                if (value === '0') {
-                    finalLadderRungs = 0;
-                } else if (value === '7alt') {
-                    finalLadderRungs = '7alt';
+                var newValue = value === '0' ? 0 : (value === '7alt' ? '7alt' : parseInt(value));
+
+                // Aktualizuj odpowiednią zmienną zależnie od trybu
+                if (handrailType === 'attic') {
+                    finalLadderRungs1 = newValue;
                 } else {
-                    finalLadderRungs = parseInt(value);
-                }
-                var hasKoncowa = (finalLadderRungs !== 0);
-                var newKoncowaHeight = getKoncowaHeight();
+                    var hadKoncowa = (finalLadderRungs !== 0);
+                    var oldKoncowaHeight = getKoncowaHeight();
 
-                // Korekta uchwytów ściskanych
-                if (!hadKoncowa && hasKoncowa) {
-                    // Dodano końcową - przesuń uchwyty o wysokość końcowej
-                    for (var i = 0; i < sciskaneHandles.length; i++) {
-                        sciskaneHandles[i].offsetFromBottom += newKoncowaHeight;
-                    }
-                } else if (hadKoncowa && !hasKoncowa) {
-                    // Usunięto końcową - przesuń uchwyty w przeciwnym kierunku
-                    for (var i = 0; i < sciskaneHandles.length; i++) {
-                        sciskaneHandles[i].offsetFromBottom -= oldKoncowaHeight;
-                    }
-                } else if (hadKoncowa && hasKoncowa) {
-                    // Zmieniono końcową na inną - skoryguj różnicę wysokości
-                    var heightDiff = newKoncowaHeight - oldKoncowaHeight;
-                    for (var i = 0; i < sciskaneHandles.length; i++) {
-                        sciskaneHandles[i].offsetFromBottom += heightDiff;
-                    }
-                }
+                    finalLadderRungs = newValue;
 
-                saveLadderAliases();  // Zapisz zmiany do aktualnej drabiny
+                    var hasKoncowa = (finalLadderRungs !== 0);
+                    var newKoncowaHeight = getKoncowaHeight();
+
+                    // Korekta uchwytów ściskanych
+                    if (!hadKoncowa && hasKoncowa) {
+                        for (var i = 0; i < sciskaneHandles.length; i++) {
+                            sciskaneHandles[i].offsetFromBottom += newKoncowaHeight;
+                        }
+                    } else if (hadKoncowa && !hasKoncowa) {
+                        for (var i = 0; i < sciskaneHandles.length; i++) {
+                            sciskaneHandles[i].offsetFromBottom -= oldKoncowaHeight;
+                        }
+                    } else if (hadKoncowa && hasKoncowa) {
+                        var heightDiff = newKoncowaHeight - oldKoncowaHeight;
+                        for (var i = 0; i < sciskaneHandles.length; i++) {
+                            sciskaneHandles[i].offsetFromBottom += heightDiff;
+                        }
+                    }
+                    saveLadderAliases();
+                }
                 createLadder();
             });
 
             // Funkcja przełączania między standardowymi kontrolkami a attyką
             function toggleAtticUI(isAttic) {
                 var standardControls = document.getElementById('controls');
-                var ladderSelector = document.getElementById('ladderSelector');
                 var atticControlsTop = document.getElementById('atticControlsTop');
-                var atticControlsBottom = document.getElementById('atticControlsBottom');
+                var ladder1Title = document.getElementById('ladder1Title');
+                var ladder2Panel = document.getElementById('ladder2Panel');
 
                 if (isAttic) {
+                    // Ukryj standardowe przyciski, pokaż attykowe
                     standardControls.style.display = 'none';
-                    ladderSelector.style.display = 'none';
                     atticControlsTop.style.display = 'block';
-                    atticControlsBottom.style.display = 'flex';
+                    // Pokaż tytuł "Drabina 1" i panel drabiny 2
+                    ladder1Title.style.display = 'block';
+                    ladder2Panel.style.display = 'block';
                     // Synchronizuj wartości dropdownów
-                    document.getElementById('ladderSelect1').value = finalLadderRungs1 || '0';
+                    document.getElementById('ladderSelect').value = finalLadderRungs1 || '0';
                     document.getElementById('ladderSelect2').value = finalLadderRungs2 || '0';
                 } else {
-                    standardControls.style.display = 'flex';
-                    ladderSelector.style.display = 'block';
+                    // Pokaż standardowe przyciski, ukryj attykowe
+                    standardControls.style.display = 'block';
                     atticControlsTop.style.display = 'none';
-                    atticControlsBottom.style.display = 'none';
+                    // Ukryj tytuł i panel drabiny 2
+                    ladder1Title.style.display = 'none';
+                    ladder2Panel.style.display = 'none';
                 }
             }
 
-            // Zmiana typu poręczy (standardowy dropdown)
+            // Zmiana typu poręczy
             document.getElementById('handrailSelect').addEventListener('change', function(e) {
                 handrailType = e.target.value;
-                document.getElementById('handrailSelect2').value = handrailType;
                 toggleAtticUI(handrailType === 'attic');
-                if (handrailType !== 'attic') {
-                    switchToLadder(1);
-                }
-                createLadder();
-            });
-
-            // Zmiana typu poręczy (attic dropdown)
-            document.getElementById('handrailSelect2').addEventListener('change', function(e) {
-                handrailType = e.target.value;
-                document.getElementById('handrailSelect').value = handrailType;
-                toggleAtticUI(handrailType === 'attic');
+                // Aktualizuj pozycję przycisku oczka po zmianie UI
+                setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
                 if (handrailType !== 'attic') {
                     switchToLadder(1);
                 }
@@ -1747,10 +1764,6 @@
                     numX7Ladders1--;
                     createLadder();
                 }
-            });
-            document.getElementById('ladderSelect1').addEventListener('change', function(e) {
-                finalLadderRungs1 = e.target.value === '0' ? 0 : (e.target.value === '7alt' ? '7alt' : parseInt(e.target.value));
-                createLadder();
             });
 
             // Przyciski dla Drabiny 2
@@ -1826,7 +1839,47 @@
                 e.stopPropagation();
                 remove7Ladder();
             });
-            
+
+            // Zamykanie tutoriala
+            document.getElementById('closeInfo').addEventListener('click', function() {
+                document.getElementById('info').style.display = 'none';
+            });
+
+            // Przycisk oczka - chowanie/pokazywanie paneli
+            var panelsVisible = true;
+            var toggleBtn = document.getElementById('togglePanelsBtn');
+            var ladderSelector = document.getElementById('ladderSelector');
+
+            function updateToggleBtnPosition() {
+                if (panelsVisible) {
+                    // Pozycjonuj nad panelami
+                    var rect = ladderSelector.getBoundingClientRect();
+                    var bottomFromViewport = window.innerHeight - rect.top;
+                    toggleBtn.style.bottom = (bottomFromViewport + 5) + 'px';
+                } else {
+                    // Gdy ukryte - na dole
+                    toggleBtn.style.bottom = '10px';
+                }
+            }
+
+            toggleBtn.addEventListener('click', function() {
+                panelsVisible = !panelsVisible;
+
+                if (panelsVisible) {
+                    ladderSelector.style.display = 'block';
+                    toggleBtn.textContent = '👁‍🗨';
+                } else {
+                    ladderSelector.style.display = 'none';
+                    toggleBtn.textContent = '👁';
+                }
+                // Aktualizuj pozycję po krótkim opóźnieniu (żeby DOM się odświeżył)
+                setTimeout(updateToggleBtnPosition, 10);
+            });
+
+            // Aktualizuj pozycję przy starcie i przy zmianie rozmiaru okna
+            setTimeout(updateToggleBtnPosition, 100);
+            window.addEventListener('resize', updateToggleBtnPosition);
+
             // Kontrolki
             var isDragging = false;
             var isPanning = false;
@@ -1966,9 +2019,14 @@
             });
             
             // Eventy dotyku
+            var touchStartPos = { x: 0, y: 0 };
+            var touchMoved = false;
+
             renderer.domElement.addEventListener('touchstart', function(e) {
                 if (e.touches.length === 1) {
                     e.preventDefault();
+                    touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    touchMoved = false;
                     onPointerStart(e.touches[0].clientX, e.touches[0].clientY);
                 } else if (e.touches.length === 2) {
                     e.preventDefault();
@@ -1988,6 +2046,11 @@
             renderer.domElement.addEventListener('touchmove', function(e) {
                 if (e.touches.length === 1) {
                     e.preventDefault();
+                    var dx = e.touches[0].clientX - touchStartPos.x;
+                    var dy = e.touches[0].clientY - touchStartPos.y;
+                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                        touchMoved = true;
+                    }
                     onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
                 } else if (e.touches.length === 2) {
                     e.preventDefault();
@@ -2021,7 +2084,79 @@
                 if (e.touches.length < 2) {
                     initialPinchDistance = null;
                 }
+                // Jeśli nie przesunęliśmy palca - traktuj jako tap/kliknięcie
+                if (!touchMoved && e.changedTouches.length > 0) {
+                    var touch = e.changedTouches[0];
+                    handleTap(touch.clientX, touch.clientY);
+                }
             }, { passive: false });
+
+            // Funkcja obsługująca tap (dotknięcie bez przesunięcia) - ta sama logika co click
+            function handleTap(clientX, clientY) {
+                mouse.x = (clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                // Tryb miarki
+                if (measureMode) {
+                    var intersects = raycaster.intersectObjects(ladderContainer.children, true);
+                    if (intersects.length > 0) {
+                        addMeasurePoint(intersects[0].point);
+                    }
+                    return;
+                }
+
+                // Tryb uchwytów ściskanych
+                if (sciskaneMode) {
+                    // Sprawdź kliknięcie na podgląd (dodanie pary)
+                    var intersects = raycaster.intersectObjects(sciskanePreviewObjects, true);
+                    if (intersects.length > 0) {
+                        var obj = intersects[0].object;
+                        while (obj.parent && !obj.userData.isSciskanePreview) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isSciskanePreview) {
+                            addSciskaneHandle(obj.userData.previewY, obj.userData.ladderNum);
+                            return;
+                        }
+                    }
+                    // Sprawdź kliknięcie na już umieszczone (usunięcie pary)
+                    var placedIntersects = raycaster.intersectObjects(sciskanePlacedObjects, true);
+                    if (placedIntersects.length > 0) {
+                        var obj = placedIntersects[0].object;
+                        while (obj.parent && !obj.userData.isSciskanePlaced) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isSciskanePlaced) {
+                            var offsetToRemove = obj.userData.sciskaneOffsetFromBottom;
+                            var clickedLadderNum = obj.userData.ladderNum || 1;
+                            var targetHandles = (clickedLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+                            for (var i = 0; i < targetHandles.length; i++) {
+                                if (targetHandles[i].offsetFromBottom === offsetToRemove) {
+                                    targetHandles.splice(i, 1);
+                                    createLadder();
+                                    break;
+                                }
+                            }
+                            return;
+                        }
+                    }
+                    return;
+                }
+
+                // Sprawdź przecięcia z łącznikami
+                var intersects = raycaster.intersectObjects(connectorObjects, true);
+                if (intersects.length > 0) {
+                    var obj = intersects[0].object;
+                    while (obj.parent && !obj.userData.isConnector) {
+                        obj = obj.parent;
+                    }
+                    if (obj.userData.isConnector) {
+                        openRotationPanel(obj);
+                    }
+                }
+            }
             
             // Scroll zoomuje
             renderer.domElement.addEventListener('wheel', function(e) {
