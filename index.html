@@ -213,6 +213,7 @@
             align-items: center;
             padding: 5px 0;
             border-bottom: 1px solid rgba(255,255,255,0.2);
+            color: white;
         }
         .connector-item:last-child {
             border-bottom: none;
@@ -334,6 +335,26 @@
                 <option value="safety">Poręcze asekuracyjne</option>
                 <option value="attic">Przejście przez attykę</option>
             </select>
+        </div>
+        <!-- Kosz ochronny - przyciski dla każdej drabiny -->
+        <div id="safetyCageControls" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px;">
+            <div id="safetyCage1" style="background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px; border: 1px solid #4CAF50;">
+                <span style="color: #4CAF50; font-size: 11px;">Kosz D1:</span>
+                <button id="addCage1" style="background: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">+1</button>
+                <span id="cageCount1" style="color: white; font-size: 12px; margin: 0 3px;">0/0</span>
+                <button id="removeCage1" style="background: #f44336; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">-1</button>
+            </div>
+            <div id="safetyCage2" style="display: none; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px; border: 1px solid #2196F3;">
+                <span style="color: #2196F3; font-size: 11px;">Kosz D2:</span>
+                <button id="addCage2" style="background: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">+1</button>
+                <span id="cageCount2" style="color: white; font-size: 12px; margin: 0 3px;">0/0</span>
+                <button id="removeCage2" style="background: #f44336; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">-1</button>
+            </div>
+        </div>
+        <!-- Wybór koloru modeli -->
+        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px;">
+            <span style="color: white; font-size: 11px;">Kolor:</span>
+            <input type="color" id="modelColorPicker" value="#707389" style="width: 40px; height: 25px; border: none; border-radius: 3px; cursor: pointer;">
         </div>
     </div>
 
@@ -475,6 +496,9 @@
         var sciskaneHandles = [];
 
         var handrailType = 'none';  // Typ poręczy: 'none', 'safety', 'attic'
+        var safetyCageCount1 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 1
+        var safetyCageCount2 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 2
+        var modelColor = 0x707389;  // Aktualny kolor modeli (112, 115, 137)
         var sciskaneMode = false;  // Tryb dodawania uchwytów ściskanych
         var sciskanePreviewObjects = [];  // Obiekty podglądu
         var sciskanePlacedObjects = [];  // Umieszczone uchwyty ściskane
@@ -489,7 +513,8 @@
             uchwytPoreczy: null,  // uchwyt poreczy.obj
             attyka: null,     // przejscieprzezattyke.obj
             krataWema: null,  // krata wema.obj
-            sciskany: null    // uchwyt sciskany.obj
+            sciskany: null,   // uchwyt sciskany.obj
+            obrecz: null      // obrecz.obj (kosz ochronny)
         };
         var modelsLoaded = false;
 
@@ -499,14 +524,14 @@
         // Funkcja ładowania wszystkich modeli OBJ
         function loadAllModels(callback) {
             var loader = new THREE.OBJLoader();
-            var modelsToLoad = 15; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany
+            var modelsToLoad = 16; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz
             var modelsLoadedCount = 0;
 
             // Materiał dla modeli
             var modelMaterial = new THREE.MeshStandardMaterial({
-                color: 0xF8F8FC,  // kolor ocynku (biały)
-                metalness: 0.8,
-                roughness: 0.3
+                color: modelColor,  // aktualny kolor
+                metalness: 0.3,
+                roughness: 0.5
             });
 
             function onModelLoaded() {
@@ -629,6 +654,15 @@
             }, undefined, function(err) {
                 console.error('Błąd ładowania uchwyt sciskany.obj:', err);
                 // Fallback - użyj zwykłego uchwytu jeśli nie ma modelu ściskanego
+                onModelLoaded();
+            });
+
+            // Ładuj obrecz.obj (kosz ochronny)
+            loader.load('obrecz.obj', function(obj) {
+                loadedModels.obrecz = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania obrecz.obj:', err);
                 onModelLoaded();
             });
         }
@@ -1097,6 +1131,44 @@
             createLadder();
         }
 
+        // Oblicz offsetFromBottom dla ostatniej pozycji sciskane w końcowej
+        function getLastSciskaneOffsetForKoncowa(rungs) {
+            var koncowaHeight = DIMS.railHeights[rungs];
+            var actualRungs = (rungs === '7alt') ? 7 : rungs;
+            // Ostatnia pozycja (i = rungs - 2): koncowaHeight - firstRungFromTop - ((rungs-2) * rungSpacing) - rungSpacing/2
+            return koncowaHeight - DIMS.firstRungFromTop - ((actualRungs - 2) * DIMS.rungSpacing) - DIMS.rungSpacing / 2;
+        }
+
+        // Usuń automatycznie dodane uchwyty z listy
+        function removeAutoAddedSciskane(handles) {
+            for (var i = handles.length - 1; i >= 0; i--) {
+                if (handles[i].autoAdded) {
+                    handles.splice(i, 1);
+                }
+            }
+        }
+
+        // Automatycznie dodaj uchwyt sciskany dla końcowej x5, x6, x7alt
+        function autoAddSciskaneForKoncowa(rungs, ladderNum, handles) {
+            // Najpierw usuń poprzednie auto-dodane uchwyty
+            removeAutoAddedSciskane(handles);
+
+            // Tylko dla x5, x6, x7alt
+            if (rungs !== 5 && rungs !== 6 && rungs !== '7alt') return;
+
+            var offset = getLastSciskaneOffsetForKoncowa(rungs);
+
+            // Sprawdź czy już nie ma uchwytu w tej pozycji (dodanego przez użytkownika)
+            for (var i = 0; i < handles.length; i++) {
+                if (Math.abs(handles[i].offsetFromBottom - offset) < 1) {
+                    return; // Użytkownik już dodał w tym miejscu
+                }
+            }
+
+            // Dodaj automatycznie z flagą
+            handles.push({ offsetFromBottom: offset, autoAdded: true });
+        }
+
         function renderSciskaneHandles() {
             // Wyczyść poprzednie (już usunięte przez createLadder, ale czyścimy tablicę)
             sciskanePlacedObjects = [];
@@ -1173,6 +1245,125 @@
             }
         }
 
+        // Renderuj kosz ochronny (obręcze)
+        // Oblicz maksymalną liczbę obręczy dla drabiny
+        function getMaxHoopsForLadder(ladderNum) {
+            var x7Count = (ladderNum === 1) ? numX7Ladders1 : numX7Ladders2;
+            var finalRungs = (ladderNum === 1) ? finalLadderRungs1 : finalLadderRungs2;
+
+            var maxHoops = 0;
+
+            // Dla przejścia przez attykę: bazowo 3
+            if (handrailType === 'attic') {
+                maxHoops = 3;
+            }
+
+            // Dla poręczy asekuracyjnych: bazowo 2
+            if (handrailType === 'safety') {
+                maxHoops = 2;
+            }
+
+            // +3 za każdą powielaną (x7)
+            maxHoops += x7Count * 3;
+
+            // Za końcową:
+            if (finalRungs === 1) {
+                // x1: +0
+            } else if (finalRungs >= 2 && finalRungs <= 3) {
+                // x2-x3: +1
+                maxHoops += 1;
+            } else if (finalRungs >= 4 && finalRungs <= 6) {
+                // x4-x6: +2
+                maxHoops += 2;
+            } else if (finalRungs === '7alt') {
+                // x7alt: +3
+                maxHoops += 3;
+            }
+
+            return maxHoops;
+        }
+
+        // Aktualizuj wyświetlanie limitu obręczy i wymuś limit
+        function updateCageCountDisplay() {
+            var maxHoops1 = getMaxHoopsForLadder(1);
+            var maxHoops2 = getMaxHoopsForLadder(2);
+
+            // Wymuś limity
+            if (safetyCageCount1 > maxHoops1) safetyCageCount1 = maxHoops1;
+            if (safetyCageCount2 > maxHoops2) safetyCageCount2 = maxHoops2;
+
+            // Aktualizuj wyświetlanie
+            var count1El = document.getElementById('cageCount1');
+            var count2El = document.getElementById('cageCount2');
+            if (count1El) count1El.textContent = safetyCageCount1 + '/' + maxHoops1;
+            if (count2El) count2El.textContent = safetyCageCount2 + '/' + maxHoops2;
+        }
+
+        function renderSafetyCage() {
+            if (!loadedModels.obrecz) return;
+
+            var hoopSpacing = 641.7;  // Odstęp między obręczami w mm
+
+            // Oblicz wysokości drabin
+            var height1 = getTotalHeightForLadder(1);
+            var height2 = getTotalHeightForLadder(2);
+            var maxHeight = Math.max(height1, height2);
+
+            // Oblicz pozycję startową (góra poręczy/attyki/drabiny)
+            var topPosition = maxHeight / 2;
+            var firstHoopOffset;
+            if (handrailType === 'safety') {
+                // Góra poręczy asekuracyjnych - 25mm
+                topPosition += DIMS.handrailVertical;
+                firstHoopOffset = 25;
+            } else if (handrailType === 'attic') {
+                // Góra przejścia przez attykę - 25mm
+                topPosition += DIMS.atticRailHeight;
+                firstHoopOffset = 25;
+            } else {
+                // Sama drabina - 294.3mm od góry
+                firstHoopOffset = 294.3;
+            }
+
+            // Renderuj dla drabiny 1
+            if (safetyCageCount1 > 0 && height1 > 0) {
+                var geoConfig1 = ladderGeometryConfig[1];
+                for (var i = 0; i < safetyCageCount1; i++) {
+                    var yPos = topPosition - firstHoopOffset - (i * hoopSpacing);
+
+                    var hoop = loadedModels.obrecz.clone(true);
+                    hoop.scale.set(SCALE, SCALE, SCALE);
+                    hoop.rotation.x = Math.PI * 0.5;  // 180 stopni obrót
+                    hoop.rotation.z = geoConfig1.rotationZ;
+                    hoop.position.x = 0;
+                    hoop.position.y = yPos * SCALE;
+                    hoop.position.z = (geoConfig1.zOffset + 241) * SCALE;  // 250-9mm
+                    hoop.userData.isSafetyCage = true;
+                    hoop.userData.ladderNum = 1;
+                    ladderContainer.add(hoop);
+                }
+            }
+
+            // Renderuj dla drabiny 2 (tylko przy attyce)
+            if (handrailType === 'attic' && safetyCageCount2 > 0 && height2 > 0) {
+                var geoConfig2 = ladderGeometryConfig[2];
+                for (var i = 0; i < safetyCageCount2; i++) {
+                    var yPos = topPosition - firstHoopOffset - (i * hoopSpacing);
+
+                    var hoop = loadedModels.obrecz.clone(true);
+                    hoop.scale.set(SCALE, SCALE, SCALE);
+                    hoop.rotation.x = Math.PI * 0.5;  // 180 stopni obrót
+                    hoop.rotation.z = geoConfig2.rotationZ;
+                    hoop.position.x = 0;
+                    hoop.position.y = yPos * SCALE;
+                    hoop.position.z = (geoConfig2.zOffset - 241) * SCALE;  // 250-9mm
+                    hoop.userData.isSafetyCage = true;
+                    hoop.userData.ladderNum = 2;
+                    ladderContainer.add(hoop);
+                }
+            }
+        }
+
         try {
             statusDiv.innerHTML = 'Inicjalizacja...';
             
@@ -1221,22 +1412,22 @@
             
             // Materiały
             var railMaterial = new THREE.MeshStandardMaterial({
-                color: 0xF8F8FC,  // kolor ocynku (biały)
-                metalness: 0.8,
-                roughness: 0.3
+                color: modelColor,  // aktualny kolor
+                metalness: 0.3,
+                roughness: 0.5
             });
 
             var rungMaterial = new THREE.MeshStandardMaterial({
-                color: 0xF8F8FC,  // kolor ocynku (biały)
-                metalness: 0.8,
-                roughness: 0.3
+                color: modelColor,  // aktualny kolor
+                metalness: 0.3,
+                roughness: 0.5
             });
 
             // Materiał dla ceowników
             var connectorMaterial = new THREE.MeshStandardMaterial({
-                color: 0xF8F8FC,  // kolor ocynku (biały)
-                metalness: 0.8,
-                roughness: 0.3
+                color: modelColor,  // aktualny kolor
+                metalness: 0.3,
+                roughness: 0.5
             });
             
             // Funkcja tworząca łącznik z modelu OBJ
@@ -1365,7 +1556,7 @@
                         leftPorecz.scale.set(SCALE, SCALE, SCALE);
                         leftPorecz.rotation.set(Math.PI * 1.5, 0, Math.PI);  // +180 stopni w Z
                         leftPorecz.position.x = -railOffset * SCALE;
-                        leftPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2 + 50) * SCALE;  // +5cm do góry
+                        leftPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;  // -50mm w dół
                         leftPorecz.position.z = -245.5 * SCALE;  // 24.55cm do tyłu
                         ladderContainer.add(leftPorecz);
                     }
@@ -1376,7 +1567,7 @@
                         rightPorecz.scale.set(SCALE, SCALE, SCALE);
                         rightPorecz.rotation.set(Math.PI * 1.5, 0, Math.PI);  // +180 stopni w Z
                         rightPorecz.position.x = railOffset * SCALE;
-                        rightPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2 + 50) * SCALE;  // +5cm do góry
+                        rightPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;  // -50mm w dół
                         rightPorecz.position.z = -245.5 * SCALE;  // 24.55cm do tyłu
                         ladderContainer.add(rightPorecz);
                     }
@@ -1445,7 +1636,7 @@
                         var topConnectorZ, topConnectorYOffset;
                         if (handrailType === 'safety') {
                             topConnectorZ = 0;  // uchwyt poręczy
-                            topConnectorYOffset = 50;  // 5cm do góry
+                            topConnectorYOffset = 100;  // 10cm do góry (55cm - 45cm)
                         } else {
                             // Attyka - takie same pozycje jak inne uchwyty, ale 10cm wyżej
                             topConnectorZ = (topConnectorType === 'lacznik' ? 0 : -62.5);
@@ -1513,6 +1704,14 @@
 
                 // Renderuj umieszczone uchwyty ściskane
                 renderSciskaneHandles();
+
+                // Aktualizuj limity i wyświetlanie obręczy
+                updateCageCountDisplay();
+
+                // Renderuj kosz ochronny (obręcze)
+                if (safetyCageCount1 > 0 || safetyCageCount2 > 0) {
+                    renderSafetyCage();
+                }
 
                 // Odtwórz podgląd uchwytów ściskanych jeśli tryb aktywny
                 if (sciskaneMode) {
@@ -1625,6 +1824,11 @@
                         list2.innerHTML = html2;
                     }
                 }
+
+                // Aktualizuj pozycję przycisku oczka
+                setTimeout(function() {
+                    window.dispatchEvent(new Event('resize'));
+                }, 50);
             }
 
             // Funkcja zmieniająca typ łącznika
@@ -1686,6 +1890,8 @@
                 // Aktualizuj odpowiednią zmienną zależnie od trybu
                 if (handrailType === 'attic') {
                     finalLadderRungs1 = newValue;
+                    // Auto-dodaj uchwyt dla x5, x6, x7alt
+                    autoAddSciskaneForKoncowa(newValue, 1, sciskaneHandles1);
                 } else {
                     var hadKoncowa = (finalLadderRungs !== 0);
                     var oldKoncowaHeight = getKoncowaHeight();
@@ -1710,6 +1916,8 @@
                             sciskaneHandles[i].offsetFromBottom += heightDiff;
                         }
                     }
+                    // Auto-dodaj uchwyt dla x5, x6, x7alt
+                    autoAddSciskaneForKoncowa(newValue, 1, sciskaneHandles);
                     saveLadderAliases();
                 }
                 createLadder();
@@ -1721,6 +1929,7 @@
                 var atticControlsTop = document.getElementById('atticControlsTop');
                 var ladder1Title = document.getElementById('ladder1Title');
                 var ladder2Panel = document.getElementById('ladder2Panel');
+                var safetyCage2 = document.getElementById('safetyCage2');
 
                 if (isAttic) {
                     // Ukryj standardowe przyciski, pokaż attykowe
@@ -1729,6 +1938,7 @@
                     // Pokaż tytuł "Drabina 1" i panel drabiny 2
                     ladder1Title.style.display = 'block';
                     ladder2Panel.style.display = 'block';
+                    safetyCage2.style.display = 'block';
                     // Synchronizuj wartości dropdownów
                     document.getElementById('ladderSelect').value = finalLadderRungs1 || '0';
                     document.getElementById('ladderSelect2').value = finalLadderRungs2 || '0';
@@ -1739,6 +1949,7 @@
                     // Ukryj tytuł i panel drabiny 2
                     ladder1Title.style.display = 'none';
                     ladder2Panel.style.display = 'none';
+                    safetyCage2.style.display = 'none';
                 }
             }
 
@@ -1752,6 +1963,53 @@
                     switchToLadder(1);
                 }
                 createLadder();
+            });
+
+            // Przyciski kosz ochronny - Drabina 1
+            document.getElementById('addCage1').addEventListener('click', function() {
+                var maxHoops = getMaxHoopsForLadder(1);
+                if (safetyCageCount1 < maxHoops) {
+                    safetyCageCount1++;
+                    document.getElementById('cageCount1').textContent = safetyCageCount1 + '/' + maxHoops;
+                    createLadder();
+                }
+            });
+            document.getElementById('removeCage1').addEventListener('click', function() {
+                if (safetyCageCount1 > 0) {
+                    safetyCageCount1--;
+                    var maxHoops = getMaxHoopsForLadder(1);
+                    document.getElementById('cageCount1').textContent = safetyCageCount1 + '/' + maxHoops;
+                    createLadder();
+                }
+            });
+
+            // Przyciski kosz ochronny - Drabina 2
+            document.getElementById('addCage2').addEventListener('click', function() {
+                var maxHoops = getMaxHoopsForLadder(2);
+                if (safetyCageCount2 < maxHoops) {
+                    safetyCageCount2++;
+                    document.getElementById('cageCount2').textContent = safetyCageCount2 + '/' + maxHoops;
+                    createLadder();
+                }
+            });
+            document.getElementById('removeCage2').addEventListener('click', function() {
+                if (safetyCageCount2 > 0) {
+                    safetyCageCount2--;
+                    var maxHoops = getMaxHoopsForLadder(2);
+                    document.getElementById('cageCount2').textContent = safetyCageCount2 + '/' + maxHoops;
+                    createLadder();
+                }
+            });
+
+            // Zmiana koloru modeli
+            document.getElementById('modelColorPicker').addEventListener('input', function() {
+                var newColor = new THREE.Color(this.value);
+                modelColor = newColor;
+                scene.traverse(function(child) {
+                    if (child.isMesh && child.material) {
+                        child.material.color = newColor;
+                    }
+                });
             });
 
             // Przyciski dla Drabiny 1
@@ -1778,7 +2036,10 @@
                 }
             });
             document.getElementById('ladderSelect2').addEventListener('change', function(e) {
-                finalLadderRungs2 = e.target.value === '0' ? 0 : (e.target.value === '7alt' ? '7alt' : parseInt(e.target.value));
+                var newValue = e.target.value === '0' ? 0 : (e.target.value === '7alt' ? '7alt' : parseInt(e.target.value));
+                finalLadderRungs2 = newValue;
+                // Auto-dodaj uchwyt dla x5, x6, x7alt
+                autoAddSciskaneForKoncowa(newValue, 2, sciskaneHandles2);
                 createLadder();
             });
 
@@ -2061,8 +2322,8 @@
                     var panDeltaX = centerX - lastPanCenter.x;
                     var panDeltaY = centerY - lastPanCenter.y;
                     
-                    cameraOffset.x -= panDeltaX * 0.02;
-                    cameraOffset.y += panDeltaY * 0.02;
+                    cameraOffset.x -= panDeltaX * 0.06;
+                    cameraOffset.y += panDeltaY * 0.06;
                     
                     lastPanCenter = { x: centerX, y: centerY };
                     
@@ -2072,7 +2333,7 @@
                     
                     if (initialPinchDistance) {
                         var delta = initialPinchDistance - distance;
-                        camera.position.z = lastZoom + delta * 0.05;
+                        camera.position.z = lastZoom + delta * 0.1;
                         camera.position.z = Math.max(3, Math.min(100, camera.position.z));
                     }
                 }
