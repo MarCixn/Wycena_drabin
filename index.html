@@ -514,7 +514,10 @@
             attyka: null,     // przejscieprzezattyke.obj
             krataWema: null,  // krata wema.obj
             sciskany: null,   // uchwyt sciskany.obj
-            obrecz: null      // obrecz.obj (kosz ochronny)
+            obrecz: null,     // obrecz.obj (kosz ochronny)
+            katownikX2: null, // katownik_x2.obj
+            katownikX3: null, // katownik_x3.obj
+            katownikX4: null  // katownik_x4.obj
         };
         var modelsLoaded = false;
 
@@ -524,7 +527,7 @@
         // Funkcja ładowania wszystkich modeli OBJ
         function loadAllModels(callback) {
             var loader = new THREE.OBJLoader();
-            var modelsToLoad = 16; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz
+            var modelsToLoad = 19; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + 3 kątowniki
             var modelsLoadedCount = 0;
 
             // Materiał dla modeli
@@ -663,6 +666,31 @@
                 onModelLoaded();
             }, undefined, function(err) {
                 console.error('Błąd ładowania obrecz.obj:', err);
+                onModelLoaded();
+            });
+
+            // Ładuj kątowniki
+            loader.load('katownikx2.obj', function(obj) {
+                loadedModels.katownikX2 = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania katownikx2.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('katownikx3.obj', function(obj) {
+                loadedModels.katownikX3 = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania katownikx3.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('katownik_x4.obj', function(obj) {
+                loadedModels.katownikX4 = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania katownik_x4.obj:', err);
                 onModelLoaded();
             });
         }
@@ -1362,6 +1390,167 @@
                     ladderContainer.add(hoop);
                 }
             }
+
+            // Funkcja obliczająca kątowniki dla danej ilości obręczy
+            function calculateAngleBrackets(hoopCount) {
+                if (hoopCount <= 1) return [];  // 1 lub mniej obręczy - brak kątowników
+                if (hoopCount === 2) return [{ type: 'x2', startHoop: 0 }];
+                if (hoopCount === 3) return [{ type: 'x3', startHoop: 0 }];
+
+                // 4+ obręczy - system zakładek
+                var brackets = [];
+                var coveredHoles = 0;
+                var currentHoop = 0;
+                var isFirst = true;
+
+                while (coveredHoles < hoopCount) {
+                    var remaining = hoopCount - coveredHoles;
+                    var bracketType, holesAdded;
+
+                    if (isFirst) {
+                        // Pierwszy kątownik - zawsze dodaje pełną ilość otworów
+                        if (remaining >= 4) {
+                            bracketType = 'x4';
+                            holesAdded = 4;
+                        } else if (remaining === 3) {
+                            bracketType = 'x3';
+                            holesAdded = 3;
+                        } else {
+                            bracketType = 'x2';
+                            holesAdded = 2;
+                        }
+                        isFirst = false;
+                    } else {
+                        // Kolejne kątowniki na zakładkę - dodają o 1 mniej (bo 1 otwór wspólny)
+                        if (remaining >= 3) {
+                            bracketType = 'x4';
+                            holesAdded = 3;  // x4 na zakładkę = 3 nowe otwory
+                        } else if (remaining === 2) {
+                            bracketType = 'x3';
+                            holesAdded = 2;  // x3 na zakładkę = 2 nowe otwory
+                        } else {
+                            bracketType = 'x2';
+                            holesAdded = 1;  // x2 na zakładkę = 1 nowy otwór
+                        }
+                    }
+
+                    brackets.push({ type: bracketType, startHoop: currentHoop });
+                    coveredHoles += holesAdded;
+
+                    // Następny kątownik startuje na zakładce
+                    if (bracketType === 'x4') {
+                        currentHoop += 3;  // x4 ma 4 otwory, zakładka na 4. otworze
+                    } else if (bracketType === 'x3') {
+                        currentHoop += 2;
+                    } else {
+                        currentHoop += 1;
+                    }
+                }
+
+                return brackets;
+            }
+
+            // Funkcja renderująca kątowniki dla drabiny
+            function renderAngleBrackets(hoopCount, ladderNum, topPos, firstOffset, spacing, geoConfig) {
+                var brackets = calculateAngleBrackets(hoopCount);
+
+                // 5 pozycji kątowników wokół obręczy (kąty w stopniach od góry/otwarcia)
+                var bracketAngles = [90, 135, 180, 225, 270];
+                var hoopRadius = 332.5;  // promień obręczy w mm
+
+                for (var b = 0; b < brackets.length; b++) {
+                    var bracket = brackets[b];
+
+                    // Co drugi kątownik odsunięty o 3mm od środka (żeby się nie nakładały)
+                    var radiusOffset = (b % 2 === 1) ? 3 : 0;
+                    // x3/x4 mają większy promień o 7mm
+                    var typeRadiusOffset = (bracket.type !== 'x2') ? 7 : 0;
+                    var currentRadius = hoopRadius + radiusOffset + typeRadiusOffset;
+
+                    // Dla każdego kątownika dodaj 5 kopii wokół obręczy
+                    for (var a = 0; a < bracketAngles.length; a++) {
+                        var angle = bracketAngles[a];
+                        // Dla drabiny 2 obróć kątowniki o 180 stopni
+                        if (ladderNum === 2) {
+                            angle += 180;
+                        }
+                        var angleRad = angle * Math.PI / 180;
+
+                        var model;
+                        if (bracket.type === 'x2' && loadedModels.katownikX2) {
+                            model = loadedModels.katownikX2.clone(true);
+                        } else if (bracket.type === 'x3' && loadedModels.katownikX3) {
+                            model = loadedModels.katownikX3.clone(true);
+                        } else if (bracket.type === 'x4' && loadedModels.katownikX4) {
+                            model = loadedModels.katownikX4.clone(true);
+                        }
+
+                        if (model) {
+                            // Pozycja Y: od obręczy startowej w dół
+                            // Różne offsety dla różnych typów kątowników
+                            var bracketYOffset;
+                            if (bracket.type === 'x4') {
+                                bracketYOffset = 958;
+                            } else if (bracket.type === 'x3') {
+                                bracketYOffset = 958 - (spacing / 2);  // pół skoku mniej
+                            } else {  // x2
+                                bracketYOffset = 958 - spacing;  // jeden skok mniej
+                            }
+                            var yPos = topPos - firstOffset - (bracket.startHoop * spacing) - bracketYOffset;
+
+                            // Oblicz pozycję X i Z na podstawie kąta (z uwzględnieniem odsunięcia co drugi)
+                            // Kąt mierzony od góry (otwarcia) zgodnie z ruchem wskazówek zegara
+                            var xOffset = -currentRadius * Math.sin(angleRad);
+                            var zOffset = -currentRadius * Math.cos(angleRad);
+
+                            model.scale.set(SCALE, SCALE, SCALE);
+
+                            // Dodatkowe rotacje dla każdej pozycji (w stopniach, konwertowane na radiany)
+                            // Pozycje: 0=lewy(90°), 1=dolny-lewy(135°), 2=dół(180°), 3=dolny-prawy(225°), 4=prawy(270°)
+                            var rotationsX4X3 = [90, 0, 270, 180, 90];  // dla x4 i x3 (1,3,5 +180°)
+                            var rotationsX2 = [-45, 225, 135, 45, -45];   // dla x2 (2: +90°, 3: -90°, 4: +90°)
+
+                            var extraRotation;
+                            if (bracket.type === 'x2') {
+                                extraRotation = rotationsX2[a] * Math.PI / 180;
+                            } else {
+                                extraRotation = rotationsX4X3[a] * Math.PI / 180;
+                            }
+
+                            // Obrót: 90° w dół (oś X), potem obrót wokół Z + dodatkowa rotacja
+                            model.rotation.order = 'XZY';
+                            model.rotation.x = Math.PI / 2;  // 90° w dół
+                            model.rotation.z = angleRad + extraRotation;  // obrót wokół pionowej osi + dodatkowa rotacja
+
+                            model.position.x = xOffset * SCALE;
+                            model.position.y = yPos * SCALE;
+
+                            // Pozycja Z: centrum obręczy + offset - 50mm do przodu
+                            // Wszystkie kątowniki przesunięte o 15mm bliżej drabiny
+                            var bracketZOffset = 15;
+                            if (ladderNum === 1) {
+                                model.position.z = (geoConfig.zOffset + 241 - 50 - bracketZOffset + zOffset) * SCALE;
+                            } else {
+                                model.position.z = (geoConfig.zOffset - 241 + 50 + bracketZOffset + zOffset) * SCALE;
+                            }
+
+                            model.userData.isAngleBracket = true;
+                            model.userData.ladderNum = ladderNum;
+                            ladderContainer.add(model);
+                        }
+                    }
+                }
+            }
+
+            // Renderuj kątowniki dla drabiny 1
+            if (safetyCageCount1 > 0 && height1 > 0) {
+                renderAngleBrackets(safetyCageCount1, 1, topPosition, firstHoopOffset, hoopSpacing, ladderGeometryConfig[1]);
+            }
+
+            // Renderuj kątowniki dla drabiny 2
+            if (handrailType === 'attic' && safetyCageCount2 > 0 && height2 > 0) {
+                renderAngleBrackets(safetyCageCount2, 2, topPosition, firstHoopOffset, hoopSpacing, ladderGeometryConfig[2]);
+            }
         }
 
         try {
@@ -1373,10 +1562,10 @@
             
             // Kamera
             var camera = new THREE.PerspectiveCamera(
-                60, 
-                window.innerWidth / window.innerHeight, 
-                0.1, 
-                200
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                500
             );
             camera.position.z = 50;
             camera.position.y = 0;
@@ -1406,9 +1595,11 @@
             light2.position.set(-10, -10, -10);
             scene.add(light2);
             
-            // Kontener na drabinkę
+            // Grupa obrotu i kontener na drabinkę
+            var pivotGroup = new THREE.Group();
+            scene.add(pivotGroup);
             var ladderContainer = new THREE.Group();
-            scene.add(ladderContainer);
+            pivotGroup.add(ladderContainer);
             
             // Materiały
             var railMaterial = new THREE.MeshStandardMaterial({
@@ -2147,9 +2338,9 @@
             var previousPosition = { x: 0, y: 0 };
             var targetRotation = { x: 0, y: 0.3 };
             var currentRotation = { x: 0, y: 0.3 };
-            var cameraOffset = { x: 0, y: 0 };
+            var cameraOffset = { x: 0, y: 0, z: 0 };
             var initialPinchDistance = null;
-            var lastZoom = camera.position.z;
+            var lastZoom = 50;
             var lastPanCenter = { x: 0, y: 0 };
             
             function onPointerStart(x, y) {
@@ -2260,8 +2451,10 @@
                     var deltaX = e.clientX - previousPosition.x;
                     var deltaY = e.clientY - previousPosition.y;
                     
-                    cameraOffset.x -= deltaX * 0.02;
-                    cameraOffset.y += deltaY * 0.02;
+                    // Przesuwanie proporcjonalne do odległości (jak w CAD)
+                    var panScale = camera.position.z * 0.00075;
+                    cameraOffset.x -= deltaX * panScale;
+                    cameraOffset.y += deltaY * panScale;
                     
                     previousPosition = { x: e.clientX, y: e.clientY };
                 } else {
@@ -2322,8 +2515,10 @@
                     var panDeltaX = centerX - lastPanCenter.x;
                     var panDeltaY = centerY - lastPanCenter.y;
                     
-                    cameraOffset.x -= panDeltaX * 0.06;
-                    cameraOffset.y += panDeltaY * 0.06;
+                    // Przesuwanie proporcjonalne do odległości (jak w CAD)
+                    var touchPanScale = camera.position.z * 0.0015;
+                    cameraOffset.x -= panDeltaX * touchPanScale;
+                    cameraOffset.y += panDeltaY * touchPanScale;
                     
                     lastPanCenter = { x: centerX, y: centerY };
                     
@@ -2333,8 +2528,9 @@
                     
                     if (initialPinchDistance) {
                         var delta = initialPinchDistance - distance;
-                        camera.position.z = lastZoom + delta * 0.1;
-                        camera.position.z = Math.max(3, Math.min(100, camera.position.z));
+                        // Zoom proporcjonalny do odległości (jak w CAD)
+                        camera.position.z = lastZoom * (1 + delta * 0.005);
+                        camera.position.z = Math.max(3, Math.min(300, camera.position.z));
                     }
                 }
             }, { passive: false });
@@ -2422,8 +2618,9 @@
             // Scroll zoomuje
             renderer.domElement.addEventListener('wheel', function(e) {
                 e.preventDefault();
-                camera.position.z += e.deltaY * 0.02;
-                camera.position.z = Math.max(3, Math.min(100, camera.position.z));
+                // Zoom proporcjonalny do odległości (jak w CAD)
+                camera.position.z *= (1 + e.deltaY * 0.001);
+                camera.position.z = Math.max(3, Math.min(300, camera.position.z));
             }, { passive: false });
 
             // Blokuj domyślne zachowanie środkowego przycisku (auto-scroll)
@@ -2437,13 +2634,20 @@
                 
                 currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
                 currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
-                
-                ladderContainer.rotation.x = currentRotation.x;
-                ladderContainer.rotation.y = currentRotation.y;
-                
+
+                // Drabina przesunięta wewnątrz pivota - punkt obrotu podąża za kamerą
+                ladderContainer.position.y = -cameraOffset.y;
+                // Przy attyce cofnij pivot o 51cm (510mm) do tyłu
+                var atticZOffset = (handrailType === 'attic') ? 510 * SCALE : 0;
+                ladderContainer.position.z = -cameraOffset.z + atticZOffset;
+
+                // Obrót następuje na pivotGroup (wokół y=0, z=0)
+                pivotGroup.rotation.x = currentRotation.x;
+                pivotGroup.rotation.y = currentRotation.y;
+
                 camera.position.x = cameraOffset.x;
-                camera.position.y = cameraOffset.y;
-                camera.lookAt(cameraOffset.x, cameraOffset.y, 0);
+                camera.position.y = 0;
+                camera.lookAt(cameraOffset.x, 0, 0);
                 
                 renderer.render(scene, camera);
             }
