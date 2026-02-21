@@ -474,12 +474,18 @@
                 <button id="addCage1" style="background: #4CAF50; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">+1</button>
                 <span id="cageCount1" style="color: white; font-size: 12px; margin: 0 3px;">0/0</span>
                 <button id="removeCage1" style="background: #f44336; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">-1</button>
+                <label id="cageClosing1Label" style="display: none; color: #4CAF50; font-size: 10px; margin-left: 5px; cursor: pointer;">
+                    <input type="checkbox" id="cageClosing1Checkbox" style="cursor: pointer;"> Zamknij
+                </label>
             </div>
             <div id="safetyCage2" style="display: none; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px; border: 1px solid #2196F3;">
                 <span style="color: #2196F3; font-size: 11px;">Kosz D2:</span>
                 <button id="addCage2" style="background: #2196F3; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">+1</button>
                 <span id="cageCount2" style="color: white; font-size: 12px; margin: 0 3px;">0/0</span>
                 <button id="removeCage2" style="background: #f44336; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">-1</button>
+                <label id="cageClosing2Label" style="display: none; color: #2196F3; font-size: 10px; margin-left: 5px; cursor: pointer;">
+                    <input type="checkbox" id="cageClosing2Checkbox" style="cursor: pointer;"> Zamknij
+                </label>
             </div>
         </div>
         <!-- Wybór koloru modeli i tekstury -->
@@ -683,6 +689,8 @@
         var useGalvanizedTexture = true;  // Czy używać tekstury ocynku
         var safetyCageCount1 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 1
         var safetyCageCount2 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 2
+        var cageClosing1 = false;  // Zamykanie kosza dla drabiny 1
+        var cageClosing2 = false;  // Zamykanie kosza dla drabiny 2
         var midRungBracket1 = true;  // Uchwyt między 2. a 3. szczeblem dla drabiny 1
         var midRungBracket2 = true;  // Uchwyt między 2. a 3. szczeblem dla drabiny 2
         var midRungBracketConnType1 = 'uchwyt';  // Typ łącznika: 'uchwyt' lub 'sciskany'
@@ -738,7 +746,7 @@
 
         function loadAllModels(callback) {
             var loader = new THREE.OBJLoader();
-            var modelsToLoad = 25; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + 3 kątowniki + 5 wsporników + podest
+            var modelsToLoad = 26; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + zamykanie + 3 kątowniki + 5 wsporników + podest
             var modelsLoadedCount = 0;
 
             // Materiał dla modeli - ocynkowany metal
@@ -878,6 +886,15 @@
                 onModelLoaded();
             }, undefined, function(err) {
                 console.error('Błąd ładowania obrecz.obj:', err);
+                onModelLoaded();
+            });
+
+            // Ładuj zamykanie.obj (zamknięcie kosza ochronnego)
+            loader.load('zamykanie.obj', function(obj) {
+                loadedModels.zamykanie = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania zamykanie.obj:', err);
                 onModelLoaded();
             });
 
@@ -2489,6 +2506,22 @@
                     hoop.userData.ladderNum = 1;
                     ladderContainer.add(hoop);
                 }
+
+                // Zamykanie kosza dla drabiny 1 (na ostatniej obręczy)
+                if (cageClosing1 && safetyCageCount1 >= 2 && loadedModels.zamykanie) {
+                    var lastHoopY = topPosition - firstHoopOffset - ((safetyCageCount1 - 1) * hoopSpacing);
+                    var closing1 = loadedModels.zamykanie.clone(true);
+                    closing1.scale.set(SCALE, SCALE, SCALE);
+                    closing1.rotation.x = Math.PI * 0.5;
+                    closing1.rotation.y = Math.PI;  // Obrót o 180°
+                    closing1.rotation.z = geoConfig1.rotationZ;
+                    closing1.position.x = 0;
+                    closing1.position.y = (lastHoopY - 35) * SCALE;  // 35mm w dół
+                    closing1.position.z = (geoConfig1.zOffset + 241 + 4) * SCALE;  // +4mm w przód
+                    closing1.userData.isSafetyCage = true;
+                    closing1.userData.ladderNum = 1;
+                    ladderContainer.add(closing1);
+                }
             }
 
             // Renderuj dla drabiny 2 (tylko przy attyce)
@@ -2509,6 +2542,22 @@
                     hoop.userData.isSafetyCage = true;
                     hoop.userData.ladderNum = 2;
                     ladderContainer.add(hoop);
+                }
+
+                // Zamykanie kosza dla drabiny 2 (na ostatniej obręczy)
+                if (cageClosing2 && safetyCageCount2 >= 2 && loadedModels.zamykanie) {
+                    var lastHoopY = topPosition - firstHoopOffset - ((safetyCageCount2 - 1) * hoopSpacing);
+                    var closing2 = loadedModels.zamykanie.clone(true);
+                    closing2.scale.set(SCALE, SCALE, SCALE);
+                    closing2.rotation.x = Math.PI * 0.5;
+                    closing2.rotation.y = Math.PI;  // Obrót o 180°
+                    closing2.rotation.z = geoConfig2.rotationZ;
+                    closing2.position.x = 0;
+                    closing2.position.y = (lastHoopY - 35) * SCALE;  // 35mm w dół
+                    closing2.position.z = (geoConfig2.zOffset - 241 - 4) * SCALE;  // -4mm w tył
+                    closing2.userData.isSafetyCage = true;
+                    closing2.userData.ladderNum = 2;
+                    ladderContainer.add(closing2);
                 }
             }
 
@@ -2812,19 +2861,22 @@
                 isMidRung = isMidRung || false;
 
                 var sourceModel = null;
+                // Dla drabiny 2 zamieniamy modele lewy<->prawy (lustrzane odbicie)
+                var effectiveSide = (ladderNum === 2) ? (side === 'left' ? 'right' : 'left') : side;
+
                 if (type === 'krotki' && loadedModels.wspornikKrotki) {
                     sourceModel = loadedModels.wspornikKrotki;
                 } else if (type === 'sredni') {
                     // Zamienione miejscami: left używa Prawy, right używa Lewy
-                    if (side === 'left' && loadedModels.wspornikSredniPrawy) {
+                    if (effectiveSide === 'left' && loadedModels.wspornikSredniPrawy) {
                         sourceModel = loadedModels.wspornikSredniPrawy;
-                    } else if (side === 'right' && loadedModels.wspornikSredniLewy) {
+                    } else if (effectiveSide === 'right' && loadedModels.wspornikSredniLewy) {
                         sourceModel = loadedModels.wspornikSredniLewy;
                     }
                 } else if (type === 'dlugi') {
-                    if (side === 'left' && loadedModels.wspornikDlugiLewy) {
+                    if (effectiveSide === 'left' && loadedModels.wspornikDlugiLewy) {
                         sourceModel = loadedModels.wspornikDlugiLewy;
-                    } else if (side === 'right' && loadedModels.wspornikDlugiPrawy) {
+                    } else if (effectiveSide === 'right' && loadedModels.wspornikDlugiPrawy) {
                         sourceModel = loadedModels.wspornikDlugiPrawy;
                     }
                 }
@@ -2840,14 +2892,15 @@
                     // Dla długich i średnich wsporników dodaj 90° do przodu (oś X) - ORYGINAŁ
                     // Dla krótkiego: -90° w górę + obrót w Y (prawy w lewo, lewy w prawo)
                     // Dla prawego długiego dodatkowo 180° (oś Y)
+                    // Używamy effectiveSide dla rotacji bo modele są zamienione dla drabiny 2
                     var extraRotX = 0;
                     var extraRotY = 0;
                     if (type === 'dlugi' || type === 'sredni') {
                         extraRotX = Math.PI * 0.5;   // oryginał dla średniego i długiego
-                        if (type === 'dlugi' && side === 'right') {
+                        if (type === 'dlugi' && effectiveSide === 'right') {
                             extraRotY = Math.PI;    // oryginał dla prawego długiego
                         }
-                        if (type === 'sredni' && side === 'right') {
+                        if (type === 'sredni' && effectiveSide === 'right') {
                             extraRotY = Math.PI;    // prawy średni: 180° w bok
                         }
                     } else if (type === 'krotki') {
@@ -2857,12 +2910,18 @@
                     // Dla krótkiego: dodatkowy obrót w Z (lewy w prawo, prawy w lewo)
                     var extraRotZ = 0;
                     if (type === 'krotki') {
-                        if (side === 'left') {
+                        if (effectiveSide === 'left') {
                             extraRotZ = Math.PI * 0.5 + Math.PI;   // lewy: 90° + 180° w bok
                         } else {
                             extraRotZ = Math.PI * -0.5;  // prawy: 90° w lewo
                         }
                     }
+
+                    // Dla drabiny 2: cała para obrócona o 180° w bok (oś Z - patrząc z przodu)
+                    if (ladderNum === 2) {
+                        extraRotZ += Math.PI;
+                    }
+
                     model.rotation.set(rot.x + extraRotX, rot.y + extraRotY, rot.z + extraRotZ);
 
                     // Oznacz jako wspornik (klikalny)
@@ -2877,9 +2936,19 @@
                         child.userData.isMidRungBracket = isMidRung;
                     });
                     // Dla długich wsporników cofnij o 100mm, dla średnich o 50mm
-                    model.userData.extraZOffset = (type === 'dlugi') ? -100 : ((type === 'sredni') ? -50 : 0);
+                    // Dla drabiny 2: odwrócona logika - średni +50mm (10cm do tyłu), długi +100mm (20cm do tyłu)
+                    var baseZOffset = (type === 'dlugi') ? -100 : ((type === 'sredni') ? -50 : 0);
+                    if (ladderNum === 2) {
+                        if (type === 'dlugi') {
+                            baseZOffset = 100;  // 20cm do tyłu (odwrócone)
+                        } else if (type === 'sredni') {
+                            baseZOffset = 50;   // 10cm do tyłu (odwrócone)
+                        }
+                    }
+                    model.userData.extraZOffset = baseZOffset;
                     model.userData.extraXOffset = (type === 'dlugi') ? -3 : ((type === 'sredni') ? -4 : ((type === 'krotki') ? -1.5 : 0));
-                    model.userData.extraYOffset = (type === 'dlugi') ? (side === 'right' ? -19.5 : -19) : ((type === 'sredni') ? (side === 'right' ? -20 : -20) : ((type === 'krotki') ? (side === 'right' ? 0 : 0) : 0));
+                    // Używamy effectiveSide dla offsetów bo modele są zamienione dla drabiny 2
+                    model.userData.extraYOffset = (type === 'dlugi') ? (effectiveSide === 'right' ? -19.5 : -19) : ((type === 'sredni') ? (effectiveSide === 'right' ? -20 : -20) : ((type === 'krotki') ? (effectiveSide === 'right' ? 0 : 0) : 0));
                     return model;
                 }
 
@@ -3586,12 +3655,31 @@
                 createLadder();
             });
 
+            // Funkcja aktualizująca widoczność checkboxa zamykania
+            function updateCageClosingVisibility() {
+                var closing1Label = document.getElementById('cageClosing1Label');
+                var closing2Label = document.getElementById('cageClosing2Label');
+                // Pokaż checkbox gdy >= 2 obręcze
+                closing1Label.style.display = (safetyCageCount1 >= 2) ? 'inline' : 'none';
+                closing2Label.style.display = (safetyCageCount2 >= 2) ? 'inline' : 'none';
+                // Resetuj zamykanie gdy < 2 obręcze
+                if (safetyCageCount1 < 2) {
+                    cageClosing1 = false;
+                    document.getElementById('cageClosing1Checkbox').checked = false;
+                }
+                if (safetyCageCount2 < 2) {
+                    cageClosing2 = false;
+                    document.getElementById('cageClosing2Checkbox').checked = false;
+                }
+            }
+
             // Przyciski kosz ochronny - Drabina 1
             document.getElementById('addCage1').addEventListener('click', function() {
                 var maxHoops = getMaxHoopsForLadder(1);
                 if (safetyCageCount1 < maxHoops) {
                     safetyCageCount1++;
                     document.getElementById('cageCount1').textContent = safetyCageCount1 + '/' + maxHoops;
+                    updateCageClosingVisibility();
                     createLadder();
                 }
             });
@@ -3600,8 +3688,15 @@
                     safetyCageCount1--;
                     var maxHoops = getMaxHoopsForLadder(1);
                     document.getElementById('cageCount1').textContent = safetyCageCount1 + '/' + maxHoops;
+                    updateCageClosingVisibility();
                     createLadder();
                 }
+            });
+
+            // Checkbox zamykania kosza - Drabina 1
+            document.getElementById('cageClosing1Checkbox').addEventListener('change', function() {
+                cageClosing1 = this.checked;
+                createLadder();
             });
 
             // Przyciski kosz ochronny - Drabina 2
@@ -3610,6 +3705,7 @@
                 if (safetyCageCount2 < maxHoops) {
                     safetyCageCount2++;
                     document.getElementById('cageCount2').textContent = safetyCageCount2 + '/' + maxHoops;
+                    updateCageClosingVisibility();
                     createLadder();
                 }
             });
@@ -3618,8 +3714,15 @@
                     safetyCageCount2--;
                     var maxHoops = getMaxHoopsForLadder(2);
                     document.getElementById('cageCount2').textContent = safetyCageCount2 + '/' + maxHoops;
+                    updateCageClosingVisibility();
                     createLadder();
                 }
+            });
+
+            // Checkbox zamykania kosza - Drabina 2
+            document.getElementById('cageClosing2Checkbox').addEventListener('change', function() {
+                cageClosing2 = this.checked;
+                createLadder();
             });
 
             // Zmiana koloru modeli
