@@ -99,26 +99,136 @@
             z-index: 200;
             display: none;
         }
-        #rotationPanel {
+        #connectionPanel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 25px;
             border-radius: 10px;
-            border: 2px solid white;
+            border: 2px solid #4CAF50;
             z-index: 300;
             display: none;
             color: white;
             font-size: 14px;
+            min-width: 300px;
         }
-        #rotationPanel.active {
+        #connectionPanel.active {
             display: block;
         }
-        #rotationPanel h3 {
-            margin: 0 0 15px 0;
+        #connectionPanel h3 {
+            margin: 0 0 20px 0;
             text-align: center;
+            color: #4CAF50;
+        }
+        .connection-row {
+            margin: 10px 0;
+        }
+        .connection-row label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+        .connection-types {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .connection-type-btn {
+            padding: 12px 25px;
+            background: #333;
+            color: white;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .connection-type-btn:hover {
+            background: #444;
+        }
+        .connection-type-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        .wspornik-row {
+            margin: 15px 0;
+        }
+        .wspornik-row label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+        .wspornik-slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+        }
+        .wspornik-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #wspornikGlobalSlider1::-webkit-slider-thumb,
+        #wspornikGlobalSlider2::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #wspornikGlobalSlider2::-webkit-slider-thumb {
+            background: #2196F3;
+        }
+        .wspornik-value {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #4CAF50;
+        }
+        .wspornik-types {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .wspornik-type-btn {
+            padding: 10px 15px;
+            background: #333;
+            color: white;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .wspornik-type-btn:hover {
+            background: #444;
+        }
+        .wspornik-type-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        #connectionPanel button.close-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #connectionPanel button.close-btn:hover {
+            background: #444;
         }
         .rotation-row {
             display: flex;
@@ -311,6 +421,16 @@
                     <option value="7alt">x7 ALT (1825mm)</option>
                 </select>
                 <div id="connectorList" style="max-height: 150px; overflow-y: auto; font-size: 11px;"></div>
+                <div style="margin-top: 5px;">
+                    <label style="color: #4CAF50; font-size: 10px; display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="wspornikDisable1" style="margin: 0;">
+                        Brak wsporników
+                    </label>
+                    <div id="wspornikSliderContainer1" style="margin-top: 5px;">
+                        <label style="color: #4CAF50; font-size: 10px;">Odległość: <span id="wspornikGlobalValue1">21</span>cm (<span id="wspornikGlobalType1">krótki</span>)</label>
+                        <input type="range" id="wspornikGlobalSlider1" min="160" max="460" value="215" style="width: 100%; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; outline: none;">
+                    </div>
+                </div>
             </div>
             <!-- Panel Drabiny 2 (widoczny tylko w trybie attyki) -->
             <div id="ladder2Panel" style="display: none; background: rgba(0,0,0,0.85); padding: 10px; border-radius: 8px; border: 2px solid #2196F3; min-width: 130px;">
@@ -326,6 +446,16 @@
                     <option value="7alt">x7 ALT (1825mm)</option>
                 </select>
                 <div id="connectorList2" style="max-height: 150px; overflow-y: auto; font-size: 11px;"></div>
+                <div style="margin-top: 5px;">
+                    <label style="color: #2196F3; font-size: 10px; display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="wspornikDisable2" style="margin: 0;">
+                        Brak wsporników
+                    </label>
+                    <div id="wspornikSliderContainer2" style="margin-top: 5px;">
+                        <label style="color: #2196F3; font-size: 10px;">Odległość: <span id="wspornikGlobalValue2">21</span>cm (<span id="wspornikGlobalType2">krótki</span>)</label>
+                        <input type="range" id="wspornikGlobalSlider2" min="160" max="460" value="215" style="width: 100%; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; outline: none;">
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Wybór poręczy - zawsze na dole -->
@@ -333,6 +463,7 @@
             <select id="handrailSelect" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.85); color: white; border: 2px solid white; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">
                 <option value="none">Brak poręczy</option>
                 <option value="safety">Poręcze asekuracyjne</option>
+                <option value="platform">Poręcze z podestem</option>
                 <option value="attic">Przejście przez attykę</option>
             </select>
         </div>
@@ -351,10 +482,14 @@
                 <button id="removeCage2" style="background: #f44336; color: white; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-weight: bold;">-1</button>
             </div>
         </div>
-        <!-- Wybór koloru modeli -->
+        <!-- Wybór koloru modeli i tekstury -->
         <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px;">
             <span style="color: white; font-size: 11px;">Kolor:</span>
             <input type="color" id="modelColorPicker" value="#707389" style="width: 40px; height: 25px; border: none; border-radius: 3px; cursor: pointer;">
+            <label style="color: white; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                <input type="checkbox" id="textureToggle" checked style="cursor: pointer;">
+                Ocynk
+            </label>
         </div>
     </div>
 
@@ -374,18 +509,43 @@
         </div>
     </div>
     <div id="status">Ladowanie...</div>
-    
+    <div id="collisionWarning" style="display: none; position: fixed; top: 50px; left: 50%; transform: translateX(-50%); background: rgba(255, 152, 0, 0.95); color: #000; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ff9800;">
+        <span id="collisionWarningText"></span>
+        <button id="collisionWarningClose" style="margin-left: 15px; background: #000; color: #ff9800; border: 1px solid #000; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-weight: bold;">X</button>
+    </div>
+
     <canvas id="techDrawing"></canvas>
     <button id="closeDrawing">✕</button>
     <button id="switchView">Widok z boku</button>
 
-    <div id="rotationPanel">
-        <h3>Zmień typ łącznika</h3>
-        <div class="rotation-row">
-            <button class="rotation-btn" style="width: auto; padding: 10px 20px;" onclick="setConnectorTypeFromPanel('uchwyt')">Uchwyt</button>
-            <button class="rotation-btn" style="width: auto; padding: 10px 20px;" onclick="setConnectorTypeFromPanel('lacznik')">Łącznik</button>
+    <div id="connectionPanel">
+        <h3>Ustawienia łączenia</h3>
+        <div class="connection-row">
+            <label>Typ łączenia:</label>
+            <div class="connection-types">
+                <button class="connection-type-btn" id="connTypeBtnUchwyt" onclick="setConnectionType('uchwyt')">Uchwyt</button>
+                <button class="connection-type-btn" id="connTypeBtnLacznik" onclick="setConnectionType('lacznik')">Łącznik</button>
+                <button class="connection-type-btn" id="connTypeBtnSciskany" style="display: none;" onclick="setMidRungConnType('sciskany')">Ściski</button>
+            </div>
         </div>
-        <button id="closeRotation" onclick="closeRotationPanel()">Zamknij</button>
+        <div id="wspornikOptions" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
+            <div class="wspornik-row">
+                <label>Typ wspornika:</label>
+                <div class="wspornik-types">
+                    <button class="wspornik-type-btn" data-type="krotki" onclick="setWspornikTypeFromPanel('krotki')">Krótki</button>
+                    <button class="wspornik-type-btn" data-type="sredni" onclick="setWspornikTypeFromPanel('sredni')">Średni</button>
+                    <button class="wspornik-type-btn" data-type="dlugi" onclick="setWspornikTypeFromPanel('dlugi')">Długi</button>
+                    <button class="wspornik-type-btn" data-type="none" onclick="setWspornikTypeFromPanel('none')">Brak</button>
+                </div>
+            </div>
+            <div class="wspornik-row" id="wspornikSliderRow">
+                <label>Odległość od ściany:</label>
+                <input type="range" class="wspornik-slider" id="wspornikSlider" min="160" max="260" value="210" oninput="updateWspornikDistance(this.value)">
+                <div class="wspornik-value"><span id="wspornikDistanceValue">21</span> cm</div>
+            </div>
+        </div>
+        <button id="midRungRemoveBtn" class="close-btn" style="display: none; background: #c33; margin-bottom: 10px;" onclick="removeMidRungBracket()">Usuń uchwyt</button>
+        <button class="close-btn" onclick="closeConnectionPanel()">Zamknij</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -442,12 +602,24 @@
         var finalLadderRungs1 = 0;
         var connectorTypes1 = [];
         var sciskaneHandles1 = [];
+        var wspornikTypes1 = [];      // Typ wspornika per pozycja: 'none', 'krotki', 'sredni', 'dlugi'
+        var wspornikTypesSaved1 = []; // Zapisany typ przed zmianą na łącznik
+        var wspornikDistances1 = [];  // Odległość wspornika od ściany w mm
+        var defaultWspornik1 = 'krotki'; // Domyślny typ wspornika dla nowych
+        var globalWspornikDistance1 = 215; // Globalna odległość wsporników w mm
+        var wspornikDisabled1 = false; // Czy wsporniki wyłączone
 
         // Drabina 2 (tylna, 107cm do tyłu, obrócona 180°)
         var numX7Ladders2 = 0;
         var finalLadderRungs2 = 0;
         var connectorTypes2 = [];
         var sciskaneHandles2 = [];
+        var wspornikTypes2 = [];      // Typ wspornika per pozycja
+        var wspornikTypesSaved2 = []; // Zapisany typ przed zmianą na łącznik
+        var wspornikDistances2 = [];  // Odległość wspornika od ściany w mm
+        var defaultWspornik2 = 'krotki'; // Domyślny typ wspornika dla nowych
+        var globalWspornikDistance2 = 215; // Globalna odległość wsporników w mm
+        var wspornikDisabled2 = false; // Czy wsporniki wyłączone
 
         // Centralna konfiguracja geometrii dla każdej drabiny
         var ladderGeometryConfig = {
@@ -463,10 +635,16 @@
                 },
                 // Uchwyty ściskane (sciskany.obj)
                 sciskane: {
-                    left: { x: Math.PI * 0.5, y: Math.PI, z: 0 },   // Do góry nogami
-                    right: { x: Math.PI * 0.5, y: 0, z: 0 },
-                    leftZOffset: -55,   // Offset Z lewego
-                    rightZOffset: -55   // Offset Z prawego
+                    left: { x: Math.PI * 0.5, y: 0, z: Math.PI },   // Obrócone o 180° w Y
+                    right: { x: Math.PI * 0.5, y: Math.PI, z: Math.PI },
+                    leftZOffset: -45,   // Offset Z lewego (+10mm do przodu)
+                    rightZOffset: -45   // Offset Z prawego (+10mm do przodu)
+                },
+                // Wsporniki do mocowania do ściany
+                wspornik: {
+                    left: { x: 0, y: 0, z: 0 },
+                    right: { x: 0, y: Math.PI, z: 0 },
+                    zOffset: -150   // Offset Z (za uchwytem)
                 }
             },
             2: {
@@ -481,10 +659,16 @@
                 },
                 // Uchwyty ściskane - osobne dla drabiny 2
                 sciskane: {
-                    left: { x: Math.PI * 0.5, y: 0, z: Math.PI },
-                    right: { x: Math.PI * 0.5, y: Math.PI, z: Math.PI },  // Odbicie lustrzane + 180° w bok
-                    leftZOffset: 54,    // -55 + 109 = 54mm (109mm do przodu)
-                    rightZOffset: 54    // -55 + 109 = 54mm (109mm do przodu)
+                    left: { x: Math.PI * 0.5, y: Math.PI, z: 0 },   // Obrócone o 180° w Y
+                    right: { x: Math.PI * 0.5, y: 0, z: 0 },
+                    leftZOffset: 44,    // -20mm
+                    rightZOffset: 44    // -20mm
+                },
+                // Wsporniki - osobne dla drabiny 2
+                wspornik: {
+                    left: { x: 0, y: Math.PI, z: 0 },
+                    right: { x: 0, y: 0, z: 0 },
+                    zOffset: 150   // Offset Z (za uchwytem, odwrócony)
                 }
             }
         };
@@ -495,9 +679,18 @@
         var connectorTypes = [];
         var sciskaneHandles = [];
 
-        var handrailType = 'none';  // Typ poręczy: 'none', 'safety', 'attic'
+        var handrailType = 'none';  // Typ poręczy: 'none', 'safety', 'platform', 'attic'
+        var useGalvanizedTexture = true;  // Czy używać tekstury ocynku
         var safetyCageCount1 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 1
         var safetyCageCount2 = 0;  // Liczba obręczy kosza ochronnego dla drabiny 2
+        var midRungBracket1 = true;  // Uchwyt między 2. a 3. szczeblem dla drabiny 1
+        var midRungBracket2 = true;  // Uchwyt między 2. a 3. szczeblem dla drabiny 2
+        var midRungBracketConnType1 = 'uchwyt';  // Typ łącznika: 'uchwyt' lub 'sciskany'
+        var midRungBracketConnType2 = 'uchwyt';
+        var midRungBracketWspornikType1 = 'krotki';  // Typ wspornika dla uchwytu między szczebla
+        var midRungBracketWspornikType2 = 'krotki';
+        var midRungBracketDistance1 = 215;  // Odległość wspornika
+        var midRungBracketDistance2 = 215;
         var modelColor = 0x707389;  // Aktualny kolor modeli (112, 115, 137)
         var sciskaneMode = false;  // Tryb dodawania uchwytów ściskanych
         var sciskanePreviewObjects = [];  // Obiekty podglądu
@@ -517,7 +710,14 @@
             obrecz: null,     // obrecz.obj (kosz ochronny)
             katownikX2: null, // katownik_x2.obj
             katownikX3: null, // katownik_x3.obj
-            katownikX4: null  // katownik_x4.obj
+            katownikX4: null, // katownik_x4.obj
+            // Wsporniki do mocowania do ściany
+            wspornikKrotki: null,       // wspornik_krotki.obj (symetryczny)
+            wspornikSredniLewy: null,   // wspornik_sredni_lewy.obj
+            wspornikSredniPrawy: null,  // wspornik_sredni_prawy.obj
+            wspornikDlugiLewy: null,    // wspornik_dlugi_lewy.obj
+            wspornikDlugiPrawy: null,   // wspornik_dlugi_prawy.obj
+            podestKrotki: null          // podest_krotki.obj
         };
         var modelsLoaded = false;
 
@@ -525,16 +725,28 @@
         var connectorTypes = [];
 
         // Funkcja ładowania wszystkich modeli OBJ
+        // Tekstura ocynku z pliku JPG (modularna)
+        var textureLoader = new THREE.TextureLoader();
+        var galvanizedTexture = textureLoader.load('ocynk.jpg', function(texture) {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(0.008, 0.008);
+        });
+        galvanizedTexture.wrapS = THREE.RepeatWrapping;
+        galvanizedTexture.wrapT = THREE.RepeatWrapping;
+        galvanizedTexture.repeat.set(0.008, 0.008);
+
         function loadAllModels(callback) {
             var loader = new THREE.OBJLoader();
-            var modelsToLoad = 19; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + 3 kątowniki
+            var modelsToLoad = 25; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + 3 kątowniki + 5 wsporników + podest
             var modelsLoadedCount = 0;
 
-            // Materiał dla modeli
+            // Materiał dla modeli - ocynkowany metal
             var modelMaterial = new THREE.MeshStandardMaterial({
-                color: modelColor,  // aktualny kolor
-                metalness: 0.3,
-                roughness: 0.5
+                color: 0xffffff,
+                metalness: 0.1,
+                roughness: 0.9,
+                map: galvanizedTexture
             });
 
             function onModelLoaded() {
@@ -596,12 +808,12 @@
                 })(i);
             }
 
-            // Ładuj uchwyt.obj
-            loader.load('uchwyt.obj', function(obj) {
+            // Ładuj bryla400.obj (zamiast uchwyt.obj)
+            loader.load('bryla400.obj', function(obj) {
                 loadedModels.uchwyt = applyMaterial(obj);
                 onModelLoaded();
             }, undefined, function(err) {
-                console.error('Błąd ładowania uchwyt.obj:', err);
+                console.error('Błąd ładowania bryla400.obj:', err);
                 onModelLoaded();
             });
 
@@ -691,6 +903,56 @@
                 onModelLoaded();
             }, undefined, function(err) {
                 console.error('Błąd ładowania katownik_x4.obj:', err);
+                onModelLoaded();
+            });
+
+            // Ładuj wsporniki
+            loader.load('wspornik_krotki.obj', function(obj) {
+                loadedModels.wspornikKrotki = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania wspornik_krotki.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('wspornik_sredni_lewy.obj', function(obj) {
+                loadedModels.wspornikSredniLewy = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania wspornik_sredni_lewy.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('wspornik_sredni_prawy.obj', function(obj) {
+                loadedModels.wspornikSredniPrawy = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania wspornik_sredni_prawy.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('wspornik_dlugi_lewy.obj', function(obj) {
+                loadedModels.wspornikDlugiLewy = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania wspornik_dlugi_lewy.obj:', err);
+                onModelLoaded();
+            });
+
+            loader.load('wspornik_dlugi_prawy.obj', function(obj) {
+                loadedModels.wspornikDlugiPrawy = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania wspornik_dlugi_prawy.obj:', err);
+                onModelLoaded();
+            });
+
+            // Ładuj podest_krotki.obj (dla poręczy z podestem)
+            loader.load('podest_krotki.obj', function(obj) {
+                loadedModels.podestKrotki = applyMaterial(obj);
+                onModelLoaded();
+            }, undefined, function(err) {
+                console.error('Błąd ładowania podest_krotki.obj:', err);
                 onModelLoaded();
             });
         }
@@ -815,6 +1077,19 @@
             return (ladderNum === 1) ? connectorTypes1 : connectorTypes2;
         }
 
+        // Pobierz typy wsporników dla konkretnej drabiny
+        function getWspornikTypesForLadder(ladderNum) {
+            return (ladderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+        }
+
+        // Pobierz domyślny typ wspornika dla konkretnej drabiny
+        function getDefaultWspornikForLadder(ladderNum) {
+            // Sprawdź czy wsporniki są wyłączone
+            if (ladderNum === 1 && wspornikDisabled1) return 'none';
+            if (ladderNum === 2 && wspornikDisabled2) return 'none';
+            return (ladderNum === 1) ? defaultWspornik1 : defaultWspornik2;
+        }
+
         // Obsługa klikania na łączniki
         var selectedConnector = null;
         var connectorObjects = [];  // Lista wszystkich łączników w scenie
@@ -830,33 +1105,651 @@
         var measureLine = null;
         var measureLabel = null;
 
-        function closeRotationPanel() {
-            document.getElementById('rotationPanel').classList.remove('active');
+        // Panel łączenia (połączony dla łączników i wsporników)
+        var selectedWspornik = null;
+        var selectedWspornikPairIndex = null;
+        var selectedWspornikLadderNum = null;
+        var selectedWspornikIsSciskane = false;
+        var selectedWspornikHandleIndex = null;
+
+        function closeConnectionPanel() {
+            document.getElementById('connectionPanel').classList.remove('active');
             selectedConnector = null;
             selectedPairIndex = null;
+            selectedWspornik = null;
+            selectedWspornikPairIndex = null;
+            selectedWspornikLadderNum = null;
+            selectedWspornikIsSciskane = false;
+            selectedWspornikHandleIndex = null;
+            selectedSciskaneOffset = null;
+            selectedSciskaneLadderNum = null;
+            selectedIsMidRungBracket = false;
+
+            // Resetuj UI do stanu domyślnego (dla zwykłych łączników)
+            document.getElementById('connTypeBtnUchwyt').style.display = 'inline-block';
+            document.getElementById('connTypeBtnLacznik').style.display = 'inline-block';
+            document.getElementById('connTypeBtnSciskany').style.display = 'none';
+            document.getElementById('midRungRemoveBtn').style.display = 'none';
+
+            // Przywróć domyślne onclick
+            document.getElementById('connTypeBtnUchwyt').onclick = function() { setConnectionType('uchwyt'); };
+            document.getElementById('connTypeBtnLacznik').onclick = function() { setConnectionType('lacznik'); };
+            document.getElementById('connTypeBtnSciskany').onclick = function() { setMidRungConnType('sciskany'); };
+            document.getElementById('midRungRemoveBtn').onclick = removeMidRungBracket;
         }
 
-        function openRotationPanel(connector) {
-            selectedConnector = connector;
-            selectedPairIndex = connector.userData.pairIndex;
+        // Domyślne odległości dla typów wsporników (mm)
+        var wspornikDefaultDistances = {
+            'krotki': 215,  // 21.5cm (zakres 16-26cm)
+            'sredni': 315,  // 31.5cm (zakres 26-36cm)
+            'dlugi': 415    // 41.5cm (zakres 36-46cm)
+        };
+
+        // Zakresy odległości dla typów wsporników (mm)
+        var wspornikDistanceRanges = {
+            'krotki': { min: 160, max: 260 },
+            'sredni': { min: 260, max: 360 },
+            'dlugi': { min: 360, max: 460 }
+        };
+
+        // Określ typ wspornika na podstawie odległości
+        function getWspornikTypeFromDistance(distanceMm) {
+            if (distanceMm < 260) return 'krotki';
+            if (distanceMm < 360) return 'sredni';
+            return 'dlugi';
+        }
+
+        // Aktualizuj wszystkie wsporniki globalnie dla drabiny
+        function updateGlobalWspornikDistance(ladderNum, distanceMm) {
+            var type = getWspornikTypeFromDistance(distanceMm);
+
+            if (ladderNum === 1) {
+                globalWspornikDistance1 = distanceMm;
+                defaultWspornik1 = type;
+                // Aktualizuj wszystkie wsporniki
+                for (var i = 0; i < wspornikTypes1.length; i++) {
+                    if (wspornikTypes1[i] !== 'none') {
+                        wspornikTypes1[i] = type;
+                        wspornikDistances1[i] = distanceMm;
+                    }
+                }
+                // Aktualizuj wsporniki przy uchwytach ściskanych
+                for (var i = 0; i < sciskaneHandles1.length; i++) {
+                    if (sciskaneHandles1[i].wspornikType !== 'none') {
+                        sciskaneHandles1[i].wspornikType = type;
+                        sciskaneHandles1[i].wspornikDistance = distanceMm;
+                    }
+                }
+                // Aktualizuj specjalny uchwyt między 2. a 3. szczeblem
+                if (midRungBracketWspornikType1 !== 'none') {
+                    midRungBracketWspornikType1 = type;
+                    midRungBracketDistance1 = distanceMm;
+                }
+            } else {
+                globalWspornikDistance2 = distanceMm;
+                defaultWspornik2 = type;
+                for (var i = 0; i < wspornikTypes2.length; i++) {
+                    if (wspornikTypes2[i] !== 'none') {
+                        wspornikTypes2[i] = type;
+                        wspornikDistances2[i] = distanceMm;
+                    }
+                }
+                for (var i = 0; i < sciskaneHandles2.length; i++) {
+                    if (sciskaneHandles2[i].wspornikType !== 'none') {
+                        sciskaneHandles2[i].wspornikType = type;
+                        sciskaneHandles2[i].wspornikDistance = distanceMm;
+                    }
+                }
+                // Aktualizuj specjalny uchwyt między 2. a 3. szczeblem
+                if (midRungBracketWspornikType2 !== 'none') {
+                    midRungBracketWspornikType2 = type;
+                    midRungBracketDistance2 = distanceMm;
+                }
+            }
+        }
+
+        // Włącz/wyłącz wszystkie wsporniki dla drabiny
+        function toggleAllWsporniki(ladderNum, disabled) {
+            var type = disabled ? 'none' : getWspornikTypeFromDistance(ladderNum === 1 ? globalWspornikDistance1 : globalWspornikDistance2);
+
+            if (ladderNum === 1) {
+                wspornikDisabled1 = disabled;
+                defaultWspornik1 = type;
+                for (var i = 0; i < wspornikTypes1.length; i++) {
+                    wspornikTypes1[i] = type;
+                }
+                for (var i = 0; i < sciskaneHandles1.length; i++) {
+                    sciskaneHandles1[i].wspornikType = type;
+                }
+                // Specjalny uchwyt między 2. a 3. szczeblem
+                midRungBracketWspornikType1 = type;
+            } else {
+                wspornikDisabled2 = disabled;
+                defaultWspornik2 = type;
+                for (var i = 0; i < wspornikTypes2.length; i++) {
+                    wspornikTypes2[i] = type;
+                }
+                for (var i = 0; i < sciskaneHandles2.length; i++) {
+                    sciskaneHandles2[i].wspornikType = type;
+                }
+                // Specjalny uchwyt między 2. a 3. szczeblem
+                midRungBracketWspornikType2 = type;
+            }
+        }
+
+        var selectedIsMidRungBracket = false;  // Czy edytujemy uchwyt między 2. a 3. szczeblem
+
+        function openConnectionPanel(connector, wspornik) {
+            // Można otworzyć z łącznika lub wspornika
+            // ZAWSZE resetuj wszystkie zmienne selekcji na start
+            selectedConnector = null;
+            selectedWspornik = null;
+            selectedPairIndex = null;
+            selectedWspornikPairIndex = null;
+            selectedWspornikIsSciskane = false;
+            selectedWspornikHandleIndex = null;
+            selectedIsMidRungBracket = false;
+
+            if (connector) {
+                selectedConnector = connector;
+                selectedPairIndex = connector.userData.pairIndex;
+                selectedWspornikLadderNum = connector.userData.ladderNum || 1;
+                selectedWspornikPairIndex = selectedPairIndex;
+                selectedIsMidRungBracket = connector.userData.isMidRungBracket || false;
+            }
+            if (wspornik) {
+                selectedWspornik = wspornik;
+                selectedWspornikLadderNum = wspornik.userData.ladderNum || 1;
+                selectedWspornikIsSciskane = wspornik.userData.isSciskaneWspornik || false;
+                selectedIsMidRungBracket = wspornik.userData.isMidRungBracket || false;
+                if (selectedWspornikIsSciskane) {
+                    selectedWspornikHandleIndex = wspornik.userData.sciskaneHandleIndex;
+                } else if (!selectedIsMidRungBracket) {
+                    selectedWspornikPairIndex = wspornik.userData.pairIndex;
+                    selectedPairIndex = selectedWspornikPairIndex;
+                }
+            }
 
             // Sprawdź czy to uchwyt poręczy (nie można zmienić)
             if (handrailType === 'safety' && selectedPairIndex === 0) {
-                return; // Nie otwieraj panelu dla uchwytu poręczy
+                return;
             }
 
-            document.getElementById('rotationPanel').classList.add('active');
+            // Jeśli to uchwyt między 2. a 3. szczeblem - specjalny panel (tylko w trybie edycji)
+            if (selectedIsMidRungBracket) {
+                if (sciskaneMode) {
+                    openMidRungBracketPanel();
+                }
+                return;
+            }
+
+            // Pobierz aktualny typ łącznika
+            var targetConnectorTypes = (selectedWspornikLadderNum === 1) ? connectorTypes1 : connectorTypes2;
+            var currentConnectorType = targetConnectorTypes[selectedPairIndex] || 'uchwyt';
+
+            // WAŻNE: Resetuj onclick handlers do domyślnych dla zwykłych łączników
+            // (mogły być zmienione przez openSciskaneEditPanel lub openMidRungBracketPanel)
+            document.getElementById('connTypeBtnUchwyt').style.display = 'inline-block';
+            document.getElementById('connTypeBtnLacznik').style.display = 'inline-block';
+            document.getElementById('connTypeBtnSciskany').style.display = 'none';
+            document.getElementById('midRungRemoveBtn').style.display = 'none';
+            document.getElementById('connTypeBtnUchwyt').onclick = function() { setConnectionType('uchwyt'); };
+            document.getElementById('connTypeBtnLacznik').onclick = function() { setConnectionType('lacznik'); };
+
+            // Aktualizuj przyciski typu łączenia
+            updateConnectionTypeButtons(currentConnectorType);
+
+            // Jeśli uchwyt - pokaż opcje wspornika
+            if (currentConnectorType === 'uchwyt') {
+                showWspornikOptions();
+            } else {
+                document.getElementById('wspornikOptions').style.display = 'none';
+            }
+
+            document.getElementById('connectionPanel').classList.add('active');
         }
 
-        function setConnectorTypeFromPanel(type) {
-            if (selectedPairIndex === null || !selectedConnector) return;
+        function openMidRungBracketPanel() {
+            // Panel dla uchwytu między 2. a 3. szczeblem
+            var connType = (selectedWspornikLadderNum === 1) ? midRungBracketConnType1 : midRungBracketConnType2;
+            var wspornikType = (selectedWspornikLadderNum === 1) ? midRungBracketWspornikType1 : midRungBracketWspornikType2;
+            var wspornikDistance = (selectedWspornikLadderNum === 1) ? midRungBracketDistance1 : midRungBracketDistance2;
 
-            // Użyj ladderNum z klikniętego łącznika, nie aktualnie zaznaczonej drabiny
-            var clickedLadderNum = selectedConnector.userData.ladderNum || 1;
-            var targetConnectorTypes = (clickedLadderNum === 1) ? connectorTypes1 : connectorTypes2;
+            // Pokaż przyciski Uchwyt i Ściski (ukryj Łącznik)
+            document.getElementById('connTypeBtnUchwyt').style.display = 'inline-block';
+            document.getElementById('connTypeBtnLacznik').style.display = 'none';
+            document.getElementById('connTypeBtnSciskany').style.display = 'inline-block';
+
+            // Ustaw aktywny typ
+            document.getElementById('connTypeBtnUchwyt').classList.remove('active');
+            document.getElementById('connTypeBtnSciskany').classList.remove('active');
+            if (connType === 'sciskany') {
+                document.getElementById('connTypeBtnSciskany').classList.add('active');
+            } else {
+                document.getElementById('connTypeBtnUchwyt').classList.add('active');
+            }
+
+            // Zmień onclick dla przycisków aby używały setMidRungConnType
+            document.getElementById('connTypeBtnUchwyt').onclick = function() { setMidRungConnType('uchwyt'); };
+            document.getElementById('connTypeBtnSciskany').onclick = function() { setMidRungConnType('sciskany'); };
+
+            // Pokaż przycisk usuwania z poprawnym onclick
+            var removeBtn = document.getElementById('midRungRemoveBtn');
+            if (removeBtn) {
+                removeBtn.style.display = 'block';
+                removeBtn.onclick = removeMidRungBracket;
+            }
+
+            // Pokaż opcje wspornika
+            showMidRungWspornikOptions(wspornikType, wspornikDistance);
+
+            document.getElementById('connectionPanel').classList.add('active');
+        }
+
+        function setMidRungConnType(type) {
+            if (selectedWspornikLadderNum === 1) {
+                midRungBracketConnType1 = type;
+            } else {
+                midRungBracketConnType2 = type;
+            }
+
+            // Aktualizuj przyciski
+            document.getElementById('connTypeBtnUchwyt').classList.remove('active');
+            document.getElementById('connTypeBtnSciskany').classList.remove('active');
+            if (type === 'sciskany') {
+                document.getElementById('connTypeBtnSciskany').classList.add('active');
+            } else {
+                document.getElementById('connTypeBtnUchwyt').classList.add('active');
+            }
+
+            createLadder();
+        }
+
+        function showMidRungWspornikOptions(type, distance) {
+            var wspornikOptions = document.getElementById('wspornikOptions');
+            wspornikOptions.style.display = 'block';
+
+            // Ustaw aktywny typ
+            document.querySelectorAll('.wspornik-type-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Ustaw slider (tylko jeśli nie 'none')
+            if (type !== 'none') {
+                var range = wspornikDistanceRanges[type] || wspornikDistanceRanges['krotki'];
+                var slider = document.getElementById('wspornikSlider');
+                slider.min = range.min;
+                slider.max = range.max;
+                slider.value = Math.max(range.min, Math.min(range.max, distance));
+                document.getElementById('wspornikDistanceValue').textContent = Math.round(slider.value / 10);
+            }
+        }
+
+        function removeMidRungBracket() {
+            if (selectedWspornikLadderNum === 1) {
+                midRungBracket1 = false;
+            } else {
+                midRungBracket2 = false;
+            }
+            closeConnectionPanel();
+            createLadder();
+        }
+
+        // Zmienne dla edycji uchwytu ściskanego
+        var selectedSciskaneOffset = null;
+        var selectedSciskaneLadderNum = null;
+
+        function openSciskaneEditPanel(offsetFromBottom, ladderNum) {
+            // Resetuj poprzednie selekcje
+            selectedConnector = null;
+            selectedWspornik = null;
+            selectedPairIndex = null;
+            selectedWspornikPairIndex = null;
+            selectedIsMidRungBracket = false;
+
+            selectedSciskaneOffset = offsetFromBottom;
+            selectedSciskaneLadderNum = ladderNum;
+            selectedWspornikLadderNum = ladderNum;
+            selectedWspornikIsSciskane = true;
+
+            // Znajdź dane uchwytu
+            var handles = (ladderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+            var handleData = null;
+            var handleIndex = -1;
+            for (var i = 0; i < handles.length; i++) {
+                if (handles[i].offsetFromBottom === offsetFromBottom) {
+                    handleData = handles[i];
+                    handleIndex = i;
+                    break;
+                }
+            }
+            if (!handleData) return;
+
+            selectedWspornikHandleIndex = handleIndex;
+
+            var connType = handleData.connType || 'sciskany';
+            var wspornikType = handleData.wspornikType || 'krotki';
+            var wspornikDistance = handleData.wspornikDistance || 215;
+
+            // Pokaż przyciski Uchwyt i Ściski (ukryj Łącznik)
+            document.getElementById('connTypeBtnUchwyt').style.display = 'inline-block';
+            document.getElementById('connTypeBtnLacznik').style.display = 'none';
+            document.getElementById('connTypeBtnSciskany').style.display = 'inline-block';
+
+            // Ustaw aktywny typ
+            document.getElementById('connTypeBtnUchwyt').classList.remove('active');
+            document.getElementById('connTypeBtnSciskany').classList.remove('active');
+            if (connType === 'uchwyt') {
+                document.getElementById('connTypeBtnUchwyt').classList.add('active');
+            } else {
+                document.getElementById('connTypeBtnSciskany').classList.add('active');
+            }
+
+            // Zmień onclick dla przycisków
+            document.getElementById('connTypeBtnUchwyt').onclick = function() { setSciskaneConnType('uchwyt'); };
+            document.getElementById('connTypeBtnSciskany').onclick = function() { setSciskaneConnType('sciskany'); };
+
+            // Pokaż przycisk usuwania
+            var removeBtn = document.getElementById('midRungRemoveBtn');
+            if (removeBtn) {
+                removeBtn.style.display = 'block';
+                removeBtn.onclick = removeSciskaneHandle;
+            }
+
+            // Pokaż opcje wspornika
+            showSciskaneWspornikOptions(wspornikType, wspornikDistance);
+
+            document.getElementById('connectionPanel').classList.add('active');
+        }
+
+        function setSciskaneConnType(type) {
+            var handles = (selectedSciskaneLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+            for (var i = 0; i < handles.length; i++) {
+                if (handles[i].offsetFromBottom === selectedSciskaneOffset) {
+                    handles[i].connType = type;
+                    break;
+                }
+            }
+
+            // Aktualizuj przyciski
+            document.getElementById('connTypeBtnUchwyt').classList.remove('active');
+            document.getElementById('connTypeBtnSciskany').classList.remove('active');
+            if (type === 'uchwyt') {
+                document.getElementById('connTypeBtnUchwyt').classList.add('active');
+            } else {
+                document.getElementById('connTypeBtnSciskany').classList.add('active');
+            }
+
+            createLadder();
+        }
+
+        function showSciskaneWspornikOptions(type, distance) {
+            var wspornikOptions = document.getElementById('wspornikOptions');
+            wspornikOptions.style.display = 'block';
+
+            // Ustaw aktywny typ
+            document.querySelectorAll('.wspornik-type-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Ustaw slider
+            if (type !== 'none') {
+                var range = wspornikDistanceRanges[type] || wspornikDistanceRanges['krotki'];
+                var slider = document.getElementById('wspornikSlider');
+                slider.min = range.min;
+                slider.max = range.max;
+                slider.value = Math.max(range.min, Math.min(range.max, distance));
+                document.getElementById('wspornikDistanceValue').textContent = Math.round(slider.value / 10);
+            }
+        }
+
+        function removeSciskaneHandle() {
+            var handles = (selectedSciskaneLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+            for (var i = 0; i < handles.length; i++) {
+                if (handles[i].offsetFromBottom === selectedSciskaneOffset) {
+                    handles.splice(i, 1);
+                    break;
+                }
+            }
+            closeConnectionPanel();
+            createLadder();
+        }
+
+        function updateConnectionTypeButtons(activeType) {
+            document.getElementById('connTypeBtnUchwyt').classList.remove('active');
+            document.getElementById('connTypeBtnLacznik').classList.remove('active');
+            if (activeType === 'uchwyt') {
+                document.getElementById('connTypeBtnUchwyt').classList.add('active');
+            } else {
+                document.getElementById('connTypeBtnLacznik').classList.add('active');
+            }
+        }
+
+        function showWspornikOptions() {
+            var currentType, currentDistance;
+
+            if (selectedWspornikIsSciskane) {
+                var ladderHandles = (selectedWspornikLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+                if (ladderHandles[selectedWspornikHandleIndex]) {
+                    currentType = ladderHandles[selectedWspornikHandleIndex].wspornikType || 'krotki';
+                    currentDistance = ladderHandles[selectedWspornikHandleIndex].wspornikDistance || wspornikDefaultDistances[currentType];
+                }
+            } else {
+                var targetTypes = (selectedWspornikLadderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+                var targetDistances = (selectedWspornikLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                currentType = targetTypes[selectedWspornikPairIndex] || 'krotki';
+                currentDistance = targetDistances[selectedWspornikPairIndex] || wspornikDefaultDistances[currentType];
+            }
+
+            // Aktualizuj przyciski typu wspornika
+            updateWspornikTypeButtons(currentType);
+
+            // Aktualizuj slider
+            updateWspornikSlider(currentType, currentDistance);
+
+            document.getElementById('wspornikOptions').style.display = 'block';
+        }
+
+        function setConnectionType(type) {
+            if (selectedPairIndex === null) return;
+
+            var targetConnectorTypes = (selectedWspornikLadderNum === 1) ? connectorTypes1 : connectorTypes2;
+            var targetWspornikTypes = (selectedWspornikLadderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+            var targetWspornikSaved = (selectedWspornikLadderNum === 1) ? wspornikTypesSaved1 : wspornikTypesSaved2;
+
+            var oldType = targetConnectorTypes[selectedPairIndex];
+
+            // Jeśli zmiana z uchwyt na łącznik - zapisz aktualny wspornik i usuń
+            if (oldType === 'uchwyt' && type === 'lacznik') {
+                targetWspornikSaved[selectedPairIndex] = targetWspornikTypes[selectedPairIndex] || 'none';
+                targetWspornikTypes[selectedPairIndex] = 'none';
+            }
+            // Jeśli zmiana z łącznik na uchwyt - przywróć zapisany wspornik
+            else if (oldType === 'lacznik' && type === 'uchwyt') {
+                var savedType = targetWspornikSaved[selectedPairIndex];
+                if (savedType && savedType !== 'none') {
+                    targetWspornikTypes[selectedPairIndex] = savedType;
+                } else {
+                    var defaultWspornik = (selectedWspornikLadderNum === 1) ? defaultWspornik1 : defaultWspornik2;
+                    targetWspornikTypes[selectedPairIndex] = defaultWspornik;
+                }
+            }
+
             targetConnectorTypes[selectedPairIndex] = type;
 
-            closeRotationPanel();
+            // Aktualizuj UI
+            updateConnectionTypeButtons(type);
+
+            if (type === 'uchwyt') {
+                showWspornikOptions();
+            } else {
+                // Łącznik - zamknij panel
+                closeConnectionPanel();
+            }
+
+            createLadder();
+        }
+
+        function updateWspornikTypeButtons(activeType) {
+            var buttons = document.querySelectorAll('.wspornik-type-btn');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.textContent === 'Krótki' && activeType === 'krotki') btn.classList.add('active');
+                if (btn.textContent === 'Średni' && activeType === 'sredni') btn.classList.add('active');
+                if (btn.textContent === 'Długi' && activeType === 'dlugi') btn.classList.add('active');
+                if (btn.textContent === 'Brak' && activeType === 'none') btn.classList.add('active');
+            });
+
+            // Pokaż/ukryj slider
+            var sliderRow = document.getElementById('wspornikSliderRow');
+            sliderRow.style.display = (activeType === 'none') ? 'none' : 'block';
+        }
+
+        function updateWspornikSlider(type, currentDistance) {
+            if (type === 'none') return;
+
+            var range = wspornikDistanceRanges[type] || wspornikDistanceRanges['krotki'];
+            var slider = document.getElementById('wspornikSlider');
+
+            // Ustaw wartość w zakresie
+            var value = currentDistance || wspornikDefaultDistances[type];
+            value = Math.max(range.min, Math.min(range.max, value));
+
+            // Ustaw min/max przed value
+            slider.min = range.min;
+            slider.max = range.max;
+            slider.value = value;
+
+            document.getElementById('wspornikDistanceValue').textContent = Math.round(value / 10);
+        }
+
+        function setWspornikTypeFromPanel(type) {
+            // Może być otwarte z wspornika, łącznika, midRungBracket lub sciskane
+            if (selectedWspornik === null && selectedPairIndex === null && !selectedIsMidRungBracket && !selectedWspornikIsSciskane) return;
+
+            if (selectedIsMidRungBracket) {
+                // Specjalny uchwyt między 2. a 3. szczeblem
+                if (selectedWspornikLadderNum === 1) {
+                    midRungBracketWspornikType1 = type;
+                    if (type !== 'none') {
+                        var range = wspornikDistanceRanges[type];
+                        if (midRungBracketDistance1 < range.min || midRungBracketDistance1 > range.max) {
+                            midRungBracketDistance1 = wspornikDefaultDistances[type];
+                        }
+                    }
+                } else {
+                    midRungBracketWspornikType2 = type;
+                    if (type !== 'none') {
+                        var range = wspornikDistanceRanges[type];
+                        if (midRungBracketDistance2 < range.min || midRungBracketDistance2 > range.max) {
+                            midRungBracketDistance2 = wspornikDefaultDistances[type];
+                        }
+                    }
+                }
+            } else if (selectedWspornikIsSciskane) {
+                var ladderHandles = (selectedWspornikLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+                if (ladderHandles[selectedWspornikHandleIndex]) {
+                    ladderHandles[selectedWspornikHandleIndex].wspornikType = type;
+                    if (type !== 'none') {
+                        var range = wspornikDistanceRanges[type];
+                        var currentDist = ladderHandles[selectedWspornikHandleIndex].wspornikDistance || 0;
+                        if (currentDist < range.min || currentDist > range.max) {
+                            ladderHandles[selectedWspornikHandleIndex].wspornikDistance = wspornikDefaultDistances[type];
+                        }
+                    }
+                }
+            } else {
+                var targetTypes = (selectedWspornikLadderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+                var targetDistances = (selectedWspornikLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                targetTypes[selectedWspornikPairIndex] = type;
+                if (type !== 'none') {
+                    var range = wspornikDistanceRanges[type];
+                    var currentDist = targetDistances[selectedWspornikPairIndex] || 0;
+                    if (currentDist < range.min || currentDist > range.max) {
+                        targetDistances[selectedWspornikPairIndex] = wspornikDefaultDistances[type];
+                    }
+                }
+            }
+
+            updateWspornikTypeButtons(type);
+            if (type !== 'none') {
+                var newDistance = wspornikDefaultDistances[type];
+                if (selectedIsMidRungBracket) {
+                    newDistance = (selectedWspornikLadderNum === 1) ? midRungBracketDistance1 : midRungBracketDistance2;
+                } else if (selectedWspornikIsSciskane) {
+                    var ladderHandles = (selectedWspornikLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+                    newDistance = ladderHandles[selectedWspornikHandleIndex].wspornikDistance || wspornikDefaultDistances[type];
+                } else {
+                    var targetDistances = (selectedWspornikLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                    newDistance = targetDistances[selectedWspornikPairIndex] || wspornikDefaultDistances[type];
+                }
+                updateWspornikSlider(type, newDistance);
+            }
+
+            createLadder();
+        }
+
+        function updateWspornikDistance(value) {
+            var distanceMm = parseInt(value);
+            document.getElementById('wspornikDistanceValue').textContent = Math.round(distanceMm / 10);
+
+            if (selectedIsMidRungBracket) {
+                // Specjalny uchwyt między 2. a 3. szczeblem
+                if (selectedWspornikLadderNum === 1) {
+                    midRungBracketDistance1 = distanceMm;
+                } else {
+                    midRungBracketDistance2 = distanceMm;
+                }
+            } else if (selectedWspornikIsSciskane) {
+                var ladderHandles = (selectedWspornikLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+                if (ladderHandles[selectedWspornikHandleIndex]) {
+                    ladderHandles[selectedWspornikHandleIndex].wspornikDistance = distanceMm;
+                }
+            } else {
+                var targetDistances = (selectedWspornikLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                targetDistances[selectedWspornikPairIndex] = distanceMm;
+            }
+
+            createLadder();
+        }
+
+        // Cykliczne przełączanie typu wspornika (nieużywane, zastąpione panelem)
+        function cycleWspornikType(wspornik) {
+            var ladderNum = wspornik.userData.ladderNum || 1;
+
+            // Cykl: krotki -> sredni -> dlugi -> krotki
+            var types = ['krotki', 'sredni', 'dlugi'];
+
+            // Sprawdź czy to wspornik od ściskanego czy od zwykłego uchwytu
+            if (wspornik.userData.isSciskaneWspornik) {
+                // Wspornik przy uchwycie ściskanym
+                var handleIndex = wspornik.userData.sciskaneHandleIndex;
+                var ladderHandles = (ladderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
+
+                if (handleIndex !== undefined && ladderHandles[handleIndex]) {
+                    var currentType = ladderHandles[handleIndex].wspornikType || 'krotki';
+                    var currentIndex = types.indexOf(currentType);
+                    var nextIndex = (currentIndex + 1) % types.length;
+                    ladderHandles[handleIndex].wspornikType = types[nextIndex];
+                }
+            } else {
+                // Wspornik przy zwykłym uchwycie (connector)
+                var pairIndex = wspornik.userData.pairIndex;
+                var targetWspornikTypes = (ladderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+
+                var currentType = targetWspornikTypes[pairIndex] || 'krotki';
+                var currentIndex = types.indexOf(currentType);
+                var nextIndex = (currentIndex + 1) % types.length;
+                targetWspornikTypes[pairIndex] = types[nextIndex];
+            }
+
+            // Odśwież drabinę
             createLadder();
         }
 
@@ -974,6 +1867,149 @@
             return positions;
         }
 
+        // Funkcja sprawdzająca kolizje między uchwytami/łącznikami a obręczami kosza
+        function checkCageCollisions() {
+            var collisions = [];
+            var collisionThreshold = 100;  // 10cm - odległość uznawana za kolizję
+
+            // Oblicz pozycje obręczy
+            var height1 = getTotalHeightForLadder(1);
+            var height2 = getTotalHeightForLadder(2);
+            var maxHeight = Math.max(height1, height2);
+
+            var topPosition = maxHeight / 2;
+            var firstHoopOffset;
+            if (handrailType === 'safety' || handrailType === 'platform') {
+                topPosition += DIMS.handrailVertical;
+                firstHoopOffset = 25;
+            } else if (handrailType === 'attic') {
+                topPosition += DIMS.atticRailHeight;
+                firstHoopOffset = 25;
+            } else {
+                firstHoopOffset = 294.3;
+            }
+
+            var hoopSpacing = 641.7;
+
+            // Sprawdź kolizje dla drabiny 1
+            if (safetyCageCount1 > 0 && height1 > 0) {
+                var hoopPositions1 = [];
+                for (var i = 0; i < safetyCageCount1; i++) {
+                    hoopPositions1.push(topPosition - firstHoopOffset - (i * hoopSpacing));
+                }
+
+                // Pobierz pozycje łączników dla drabiny 1
+                var savedLadder = currentLadder;
+                currentLadder = 1;
+                var connPositions1 = getConnectorPositions();
+                currentLadder = savedLadder;
+
+                // Sprawdź kolizje łączników
+                for (var c = 0; c < connPositions1.length; c++) {
+                    for (var h = 0; h < hoopPositions1.length; h++) {
+                        if (Math.abs(connPositions1[c] - hoopPositions1[h]) < collisionThreshold) {
+                            collisions.push({ ladder: 1, type: 'connector', position: connPositions1[c] });
+                            break;
+                        }
+                    }
+                }
+
+                // Sprawdź kolizje uchwytów ściskanych
+                for (var s = 0; s < sciskaneHandles1.length; s++) {
+                    var handleY = (maxHeight / 2) - (height1 - sciskaneHandles1[s].offsetFromBottom);
+                    for (var h = 0; h < hoopPositions1.length; h++) {
+                        if (Math.abs(handleY - hoopPositions1[h]) < collisionThreshold) {
+                            collisions.push({ ladder: 1, type: 'sciskane', position: handleY });
+                            break;
+                        }
+                    }
+                }
+                // Uwaga: specjalny uchwyt (mid-rung bracket) nie jest sprawdzany - fizycznie niemożliwa kolizja
+            }
+
+            // Sprawdź kolizje dla drabiny 2 (tylko przy attyce)
+            if (handrailType === 'attic' && safetyCageCount2 > 0 && height2 > 0) {
+                var hoopPositions2 = [];
+                for (var i = 0; i < safetyCageCount2; i++) {
+                    hoopPositions2.push(topPosition - firstHoopOffset - (i * hoopSpacing));
+                }
+
+                // Pobierz pozycje łączników dla drabiny 2
+                var savedLadder = currentLadder;
+                currentLadder = 2;
+                var connPositions2 = getConnectorPositions();
+                currentLadder = savedLadder;
+
+                // Sprawdź kolizje łączników
+                for (var c = 0; c < connPositions2.length; c++) {
+                    for (var h = 0; h < hoopPositions2.length; h++) {
+                        if (Math.abs(connPositions2[c] - hoopPositions2[h]) < collisionThreshold) {
+                            collisions.push({ ladder: 2, type: 'connector', position: connPositions2[c] });
+                            break;
+                        }
+                    }
+                }
+
+                // Sprawdź kolizje uchwytów ściskanych
+                for (var s = 0; s < sciskaneHandles2.length; s++) {
+                    var handleY = (maxHeight / 2) - (height2 - sciskaneHandles2[s].offsetFromBottom);
+                    for (var h = 0; h < hoopPositions2.length; h++) {
+                        if (Math.abs(handleY - hoopPositions2[h]) < collisionThreshold) {
+                            collisions.push({ ladder: 2, type: 'sciskane', position: handleY });
+                            break;
+                        }
+                    }
+                }
+                // Uwaga: specjalny uchwyt (mid-rung bracket) nie jest sprawdzany - fizycznie niemożliwa kolizja
+            }
+
+            return collisions;
+        }
+
+        function showCollisionWarning(collisions) {
+            var warningEl = document.getElementById('collisionWarning');
+            var textEl = document.getElementById('collisionWarningText');
+            if (collisions.length === 0) {
+                warningEl.style.display = 'none';
+                return;
+            }
+
+            // Zbierz typy kolizji (uchwyt specjalny nie jest sprawdzany - fizycznie niemożliwa kolizja)
+            var types = [];
+            var hasConnector = false;
+            var hasSciskane = false;
+            for (var i = 0; i < collisions.length; i++) {
+                if (collisions[i].type === 'connector' && !hasConnector) {
+                    types.push('uchwyt');
+                    hasConnector = true;
+                } else if (collisions[i].type === 'sciskane' && !hasSciskane) {
+                    types.push('ściskany');
+                    hasSciskane = true;
+                }
+            }
+
+            var message = 'Wykryto kolizję z obręczą kosza: ' + types.join(', ');
+
+            if (handrailType === 'attic') {
+                // Pokaż które drabiny mają kolizje
+                var ladders = [];
+                for (var i = 0; i < collisions.length; i++) {
+                    if (ladders.indexOf(collisions[i].ladder) === -1) {
+                        ladders.push(collisions[i].ladder);
+                    }
+                }
+                ladders.sort();
+                message += ' (Drabina ' + ladders.join(', ') + ')';
+            }
+
+            textEl.textContent = message;
+            warningEl.style.display = 'block';
+        }
+
+        function hideCollisionWarning() {
+            document.getElementById('collisionWarning').style.display = 'none';
+        }
+
         function isPositionValidForSciskane(yPos, ladderNum) {
             // Użyj podanego numeru drabiny lub aktualnie edytowanej
             var targetLadder = ladderNum || currentLadder;
@@ -988,6 +2024,15 @@
 
             for (var i = 0; i < connectorPositions.length; i++) {
                 if (Math.abs(yPos - connectorPositions[i]) < minDistance) {
+                    return false;
+                }
+            }
+
+            // Sprawdź odległość od specjalnego uchwytu między 2. a 3. szczeblem
+            var midRungBracketEnabled = (targetLadder === 1) ? midRungBracket1 : midRungBracket2;
+            if (midRungBracketEnabled && handrailType !== 'attic') {
+                var midRungY = (maxHeight / 2) - 548.5;
+                if (Math.abs(yPos - midRungY) < minDistance) {
                     return false;
                 }
             }
@@ -1141,11 +2186,16 @@
             }
 
             if (existingIndex >= 0) {
-                // Usuń parę jeśli już istnieje (toggle)
-                currentHandles.splice(existingIndex, 1);
+                // Już istnieje - nie usuwamy (toggle wyłączony, edycja przez panel)
+                return;
             } else {
-                // Dodaj nową parę (zapisujemy offset od dołu)
-                currentHandles.push({ offsetFromBottom: offsetFromBottom });
+                // Dodaj nową parę (zapisujemy offset od dołu z domyślnymi ustawieniami)
+                currentHandles.push({
+                    offsetFromBottom: offsetFromBottom,
+                    connType: 'sciskany',
+                    wspornikType: 'krotki',
+                    wspornikDistance: 215
+                });
             }
 
             // Zapisz do odpowiedniej drabiny
@@ -1193,16 +2243,19 @@
                 }
             }
 
-            // Dodaj automatycznie z flagą
-            handles.push({ offsetFromBottom: offset, autoAdded: true });
+            // Dodaj automatycznie z flagą i domyślnymi ustawieniami
+            handles.push({
+                offsetFromBottom: offset,
+                autoAdded: true,
+                connType: 'sciskany',
+                wspornikType: 'krotki',
+                wspornikDistance: 215
+            });
         }
 
         function renderSciskaneHandles() {
             // Wyczyść poprzednie (już usunięte przez createLadder, ale czyścimy tablicę)
             sciskanePlacedObjects = [];
-
-            var sourceModel = loadedModels.sciskany || loadedModels.uchwyt;
-            if (!sourceModel) return;
 
             var railOffset = 265;
 
@@ -1242,33 +2295,97 @@
                     // Przelicz offset od dołu na rzeczywistą pozycję Y (wyrównane górą)
                     var actualY = (maxHeight / 2) - ladderTotalHeight + handle.offsetFromBottom;
 
-                    // Lewy uchwyt - używa centralnej konfiguracji
-                    var leftRot = geoConfig.sciskane.left;
+                    // Pobierz typ łącznika (sciskany lub uchwyt)
+                    var connType = handle.connType || 'sciskany';
+                    var sourceModel;
+                    var leftRot, rightRot, leftZOffset, rightZOffset;
+
+                    if (connType === 'uchwyt') {
+                        sourceModel = loadedModels.uchwyt;
+                        // Dla uchwyt używamy rotacji z connector, nie sciskane
+                        var connectorRot = geoConfig.connector;
+                        leftRot = { x: connectorRot.left.x, y: connectorRot.left.y, z: connectorRot.left.z + Math.PI * -0.5 + Math.PI };
+                        rightRot = { x: connectorRot.right.x, y: connectorRot.right.y, z: connectorRot.right.z + Math.PI * -0.5 + Math.PI };
+                        leftZOffset = -62.5 + geoConfig.zOffset + geoConfig.connector.uchwytZOffset;
+                        rightZOffset = -62.5 + geoConfig.zOffset + geoConfig.connector.uchwytZOffset;
+                    } else {
+                        sourceModel = loadedModels.sciskany || loadedModels.uchwyt;
+                        leftRot = geoConfig.sciskane.left;
+                        rightRot = geoConfig.sciskane.right;
+                        leftZOffset = geoConfig.sciskane.leftZOffset + geoConfig.zOffset;
+                        rightZOffset = geoConfig.sciskane.rightZOffset + geoConfig.zOffset;
+                    }
+
+                    if (!sourceModel) continue;
+
+                    // Lewy uchwyt
                     var leftModel = sourceModel.clone(true);
                     leftModel.scale.set(SCALE, SCALE, SCALE);
                     leftModel.rotation.set(leftRot.x, leftRot.y, leftRot.z);
-                    leftModel.position.x = -railOffset * SCALE;
+                    leftModel.position.x = (connType === 'uchwyt' ? -railOffset + 15 - 15 : -railOffset) * SCALE;
                     leftModel.position.y = actualY * SCALE;
-                    leftModel.position.z = (geoConfig.sciskane.leftZOffset + geoConfig.zOffset) * SCALE;
+                    leftModel.position.z = leftZOffset * SCALE;
                     leftModel.userData.isSciskanePlaced = true;
                     leftModel.userData.sciskaneOffsetFromBottom = handle.offsetFromBottom;
                     leftModel.userData.ladderNum = ladderNum;
                     ladderContainer.add(leftModel);
                     sciskanePlacedObjects.push(leftModel);
 
-                    // Prawy uchwyt - używa centralnej konfiguracji
-                    var rightRot = geoConfig.sciskane.right;
+                    // Prawy uchwyt
                     var rightModel = sourceModel.clone(true);
                     rightModel.scale.set(SCALE, SCALE, SCALE);
                     rightModel.rotation.set(rightRot.x, rightRot.y, rightRot.z);
-                    rightModel.position.x = railOffset * SCALE;
+                    rightModel.position.x = (connType === 'uchwyt' ? railOffset - 15 + 15 : railOffset) * SCALE;
                     rightModel.position.y = actualY * SCALE;
-                    rightModel.position.z = (geoConfig.sciskane.rightZOffset + geoConfig.zOffset) * SCALE;
+                    rightModel.position.z = rightZOffset * SCALE;
                     rightModel.userData.isSciskanePlaced = true;
                     rightModel.userData.sciskaneOffsetFromBottom = handle.offsetFromBottom;
                     rightModel.userData.ladderNum = ladderNum;
                     ladderContainer.add(rightModel);
                     sciskanePlacedObjects.push(rightModel);
+
+                    // Wsporniki dla uchwytu ściskanego
+                    var defaultWspornik = (ladderNum === 1) ? defaultWspornik1 : defaultWspornik2;
+                    var wspornikType = handle.wspornikType || defaultWspornik;
+
+                    // Zapisz typ wspornika w handle jeśli nie był ustawiony
+                    if (!handle.wspornikType && defaultWspornik !== 'none') {
+                        handle.wspornikType = defaultWspornik;
+                        wspornikType = defaultWspornik;
+                    }
+
+                    if (wspornikType && wspornikType !== 'none') {
+                        // Oblicz custom distance offset
+                        var customDistance = handle.wspornikDistance || wspornikDefaultDistances[wspornikType];
+                        var defaultDist = wspornikDefaultDistances[wspornikType];
+                        var distanceOffset = customDistance - defaultDist;
+                        // Dla drabiny 1: więcej = bardziej ujemne Z, dla drabiny 2: więcej = bardziej dodatnie Z
+                        var distanceZOffset = (ladderNum === 1) ? -distanceOffset : distanceOffset;
+
+                        var leftWspornik = createWspornik(wspornikType, 'left', ladderNum);
+                        if (leftWspornik) {
+                            leftWspornik.position.x = (-railOffset + leftWspornik.userData.extraXOffset) * SCALE;
+                            leftWspornik.position.y = (actualY + leftWspornik.userData.extraYOffset) * SCALE;
+                            leftWspornik.position.z = (geoConfig.wspornik.zOffset + geoConfig.zOffset + leftWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                            leftWspornik.userData.isSciskaneWspornik = true;
+                            leftWspornik.userData.sciskaneHandleIndex = i;
+                            leftWspornik.userData.ladderNum = ladderNum;
+                            ladderContainer.add(leftWspornik);
+                            wspornikObjects.push(leftWspornik);
+                        }
+
+                        var rightWspornik = createWspornik(wspornikType, 'right', ladderNum);
+                        if (rightWspornik) {
+                            rightWspornik.position.x = (railOffset - rightWspornik.userData.extraXOffset) * SCALE;
+                            rightWspornik.position.y = (actualY + rightWspornik.userData.extraYOffset) * SCALE;
+                            rightWspornik.position.z = (geoConfig.wspornik.zOffset + geoConfig.zOffset + rightWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                            rightWspornik.userData.isSciskaneWspornik = true;
+                            rightWspornik.userData.sciskaneHandleIndex = i;
+                            rightWspornik.userData.ladderNum = ladderNum;
+                            ladderContainer.add(rightWspornik);
+                            wspornikObjects.push(rightWspornik);
+                        }
+                    }
                 }
             }
         }
@@ -1286,8 +2403,8 @@
                 maxHoops = 3;
             }
 
-            // Dla poręczy asekuracyjnych: bazowo 2
-            if (handrailType === 'safety') {
+            // Dla poręczy asekuracyjnych lub z podestem: bazowo 2
+            if (handrailType === 'safety' || handrailType === 'platform') {
                 maxHoops = 2;
             }
 
@@ -1340,8 +2457,8 @@
             // Oblicz pozycję startową (góra poręczy/attyki/drabiny)
             var topPosition = maxHeight / 2;
             var firstHoopOffset;
-            if (handrailType === 'safety') {
-                // Góra poręczy asekuracyjnych - 25mm
+            if (handrailType === 'safety' || handrailType === 'platform') {
+                // Góra poręczy asekuracyjnych / z podestem - 25mm
                 topPosition += DIMS.handrailVertical;
                 firstHoopOffset = 25;
             } else if (handrailType === 'attic') {
@@ -1354,7 +2471,9 @@
             }
 
             // Renderuj dla drabiny 1
-            if (safetyCageCount1 > 0 && height1 > 0) {
+            // Dla poręczy asekuracyjnych/attyki/podestu - renderuj nawet gdy height1=0 (bo są poręcze na górze)
+            var canRender1 = safetyCageCount1 > 0 && (height1 > 0 || handrailType === 'safety' || handrailType === 'platform' || handrailType === 'attic');
+            if (canRender1) {
                 var geoConfig1 = ladderGeometryConfig[1];
                 for (var i = 0; i < safetyCageCount1; i++) {
                     var yPos = topPosition - firstHoopOffset - (i * hoopSpacing);
@@ -1373,7 +2492,9 @@
             }
 
             // Renderuj dla drabiny 2 (tylko przy attyce)
-            if (handrailType === 'attic' && safetyCageCount2 > 0 && height2 > 0) {
+            // Dla attyki renderuj nawet gdy height2=0 (bo attyka jest na górze)
+            var canRender2 = handrailType === 'attic' && safetyCageCount2 > 0;
+            if (canRender2) {
                 var geoConfig2 = ladderGeometryConfig[2];
                 for (var i = 0; i < safetyCageCount2; i++) {
                     var yPos = topPosition - firstHoopOffset - (i * hoopSpacing);
@@ -1542,13 +2663,13 @@
                 }
             }
 
-            // Renderuj kątowniki dla drabiny 1
-            if (safetyCageCount1 > 0 && height1 > 0) {
+            // Renderuj kątowniki dla drabiny 1 (używaj tego samego warunku co dla obręczy)
+            if (canRender1) {
                 renderAngleBrackets(safetyCageCount1, 1, topPosition, firstHoopOffset, hoopSpacing, ladderGeometryConfig[1]);
             }
 
-            // Renderuj kątowniki dla drabiny 2
-            if (handrailType === 'attic' && safetyCageCount2 > 0 && height2 > 0) {
+            // Renderuj kątowniki dla drabiny 2 (używaj tego samego warunku co dla obręczy)
+            if (canRender2) {
                 renderAngleBrackets(safetyCageCount2, 2, topPosition, firstHoopOffset, hoopSpacing, ladderGeometryConfig[2]);
             }
         }
@@ -1624,16 +2745,20 @@
             // Funkcja tworząca łącznik z modelu OBJ
             // type: 'uchwyt', 'lacznik' lub 'uchwytPoreczy'
             // side: 'left' lub 'right', ladderNum: 1 lub 2
-            function createConnector(type, side, ladderNum) {
+            // isMidRung: true jeśli to specjalny uchwyt między 2. a 3. szczeblem
+            function createConnector(type, side, ladderNum, isMidRung) {
                 type = type || 'uchwyt';
                 side = side || 'left';
                 ladderNum = ladderNum || 1;
+                isMidRung = isMidRung || false;
 
                 var sourceModel = null;
                 if (type === 'lacznik' && loadedModels.lacznik) {
                     sourceModel = loadedModels.lacznik;
                 } else if (type === 'uchwytPoreczy' && loadedModels.uchwytPoreczy) {
                     sourceModel = loadedModels.uchwytPoreczy;
+                } else if (type === 'sciskany' && loadedModels.sciskany) {
+                    sourceModel = loadedModels.sciskany;
                 } else if (loadedModels.uchwyt) {
                     sourceModel = loadedModels.uchwyt;
                 }
@@ -1645,26 +2770,134 @@
                     // Pobierz rotację z centralnej konfiguracji
                     var geoConfig = ladderGeometryConfig[ladderNum];
                     var rot = geoConfig.connector[side];
-                    model.rotation.set(rot.x, rot.y, rot.z);
+
+                    // Dla bryla400 (uchwyt): -90° + 180° = 90° (oś Z po obrocie X)
+                    var extraRotZ = 0;
+                    if (type === 'uchwyt') {
+                        extraRotZ = Math.PI * -0.5 + Math.PI;
+                    }
+                    model.rotation.set(rot.x, rot.y, rot.z + extraRotZ);
 
                     // Oznacz jako łącznik (klikalny)
                     model.userData.isConnector = true;
                     model.userData.ladderNum = ladderNum;
+                    model.userData.isMidRungBracket = isMidRung;
+                    // Ustaw też na wszystkich child'ach
+                    model.traverse(function(child) {
+                        child.userData.isConnector = true;
+                        child.userData.ladderNum = ladderNum;
+                        child.userData.isMidRungBracket = isMidRung;
+                    });
                     connectorObjects.push(model);
                     return model;
                 }
 
                 // Fallback - pusty group jeśli model nie załadowany
-                return new THREE.Group();
+                // Ale dalej ustawiamy userData żeby kliknięcia działały
+                var fallbackGroup = new THREE.Group();
+                fallbackGroup.userData.isConnector = true;
+                fallbackGroup.userData.ladderNum = ladderNum;
+                fallbackGroup.userData.isMidRungBracket = isMidRung;
+                connectorObjects.push(fallbackGroup);
+                return fallbackGroup;
             }
-            
+
+            // Funkcja tworząca wspornik z modelu OBJ
+            // type: 'krotki', 'sredni', 'dlugi'
+            // side: 'left' lub 'right', ladderNum: 1 lub 2
+            function createWspornik(type, side, ladderNum, isMidRung) {
+                type = type || 'krotki';
+                side = side || 'left';
+                ladderNum = ladderNum || 1;
+                isMidRung = isMidRung || false;
+
+                var sourceModel = null;
+                if (type === 'krotki' && loadedModels.wspornikKrotki) {
+                    sourceModel = loadedModels.wspornikKrotki;
+                } else if (type === 'sredni') {
+                    // Zamienione miejscami: left używa Prawy, right używa Lewy
+                    if (side === 'left' && loadedModels.wspornikSredniPrawy) {
+                        sourceModel = loadedModels.wspornikSredniPrawy;
+                    } else if (side === 'right' && loadedModels.wspornikSredniLewy) {
+                        sourceModel = loadedModels.wspornikSredniLewy;
+                    }
+                } else if (type === 'dlugi') {
+                    if (side === 'left' && loadedModels.wspornikDlugiLewy) {
+                        sourceModel = loadedModels.wspornikDlugiLewy;
+                    } else if (side === 'right' && loadedModels.wspornikDlugiPrawy) {
+                        sourceModel = loadedModels.wspornikDlugiPrawy;
+                    }
+                }
+
+                if (sourceModel) {
+                    var model = sourceModel.clone(true);
+                    model.scale.set(SCALE, SCALE, SCALE);
+
+                    // Pobierz rotację z centralnej konfiguracji
+                    var geoConfig = ladderGeometryConfig[ladderNum];
+                    var rot = geoConfig.wspornik[side];
+
+                    // Dla długich i średnich wsporników dodaj 90° do przodu (oś X) - ORYGINAŁ
+                    // Dla krótkiego: -90° w górę + obrót w Y (prawy w lewo, lewy w prawo)
+                    // Dla prawego długiego dodatkowo 180° (oś Y)
+                    var extraRotX = 0;
+                    var extraRotY = 0;
+                    if (type === 'dlugi' || type === 'sredni') {
+                        extraRotX = Math.PI * 0.5;   // oryginał dla średniego i długiego
+                        if (type === 'dlugi' && side === 'right') {
+                            extraRotY = Math.PI;    // oryginał dla prawego długiego
+                        }
+                        if (type === 'sredni' && side === 'right') {
+                            extraRotY = Math.PI;    // prawy średni: 180° w bok
+                        }
+                    } else if (type === 'krotki') {
+                        extraRotX = Math.PI * -0.5;  // -90° w górę
+                    }
+
+                    // Dla krótkiego: dodatkowy obrót w Z (lewy w prawo, prawy w lewo)
+                    var extraRotZ = 0;
+                    if (type === 'krotki') {
+                        if (side === 'left') {
+                            extraRotZ = Math.PI * 0.5 + Math.PI;   // lewy: 90° + 180° w bok
+                        } else {
+                            extraRotZ = Math.PI * -0.5;  // prawy: 90° w lewo
+                        }
+                    }
+                    model.rotation.set(rot.x + extraRotX, rot.y + extraRotY, rot.z + extraRotZ);
+
+                    // Oznacz jako wspornik (klikalny)
+                    model.userData.isWspornik = true;
+                    model.userData.wspornikType = type;
+                    model.userData.ladderNum = ladderNum;
+                    model.userData.isMidRungBracket = isMidRung;
+                    // Ustaw też na wszystkich child'ach
+                    model.traverse(function(child) {
+                        child.userData.isWspornik = true;
+                        child.userData.ladderNum = ladderNum;
+                        child.userData.isMidRungBracket = isMidRung;
+                    });
+                    // Dla długich wsporników cofnij o 100mm, dla średnich o 50mm
+                    model.userData.extraZOffset = (type === 'dlugi') ? -100 : ((type === 'sredni') ? -50 : 0);
+                    model.userData.extraXOffset = (type === 'dlugi') ? -3 : ((type === 'sredni') ? -4 : ((type === 'krotki') ? -1.5 : 0));
+                    model.userData.extraYOffset = (type === 'dlugi') ? (side === 'right' ? -19.5 : -19) : ((type === 'sredni') ? (side === 'right' ? -20 : -20) : ((type === 'krotki') ? (side === 'right' ? 0 : 0) : 0));
+                    return model;
+                }
+
+                // Fallback - pusty group jeśli model nie załadowany
+                return null;
+            }
+
+            // Tablica do przechowywania obiektów wsporników
+            var wspornikObjects = [];
+
             function createLadder() {
                 // Wyczyść poprzednią drabinkę
                 while(ladderContainer.children.length > 0) {
                     ladderContainer.remove(ladderContainer.children[0]);
                 }
-                // Wyczyść listę łączników
+                // Wyczyść listę łączników i wsporników
                 connectorObjects = [];
+                wspornikObjects = [];
 
                 // Określ które drabiny renderować
                 var laddersToRender = [1];  // Zawsze drabina 1
@@ -1762,6 +2995,42 @@
                         rightPorecz.position.z = -245.5 * SCALE;  // 24.55cm do tyłu
                         ladderContainer.add(rightPorecz);
                     }
+                } else if (handrailType === 'platform') {
+                    // PORĘCZE Z PODESTEM - poręcze asekuracyjne + podest na górze
+                    var topOfLadder = (totalHeight / 2);
+
+                    // Lewa poręcz (tak jak safety)
+                    if (loadedModels.porecz) {
+                        var leftPorecz = loadedModels.porecz.clone(true);
+                        leftPorecz.scale.set(SCALE, SCALE, SCALE);
+                        leftPorecz.rotation.set(Math.PI * 1.5, 0, Math.PI);
+                        leftPorecz.position.x = -railOffset * SCALE;
+                        leftPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;
+                        leftPorecz.position.z = -245.5 * SCALE;
+                        ladderContainer.add(leftPorecz);
+                    }
+
+                    // Prawa poręcz (tak jak safety)
+                    if (loadedModels.porecz) {
+                        var rightPorecz = loadedModels.porecz.clone(true);
+                        rightPorecz.scale.set(SCALE, SCALE, SCALE);
+                        rightPorecz.rotation.set(Math.PI * 1.5, 0, Math.PI);
+                        rightPorecz.position.x = railOffset * SCALE;
+                        rightPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;
+                        rightPorecz.position.z = -245.5 * SCALE;
+                        ladderContainer.add(rightPorecz);
+                    }
+
+                    // Podest na górze (między poręczami)
+                    if (loadedModels.podestKrotki) {
+                        var podest = loadedModels.podestKrotki.clone(true);
+                        podest.scale.set(SCALE, SCALE, SCALE);
+                        podest.rotation.set(Math.PI * 1.5, 0, 0);
+                        podest.position.x = 0;  // wyśrodkowane
+                        podest.position.y = (topOfLadder + DIMS.handrailVertical / 2 - 536) * SCALE;  // 536mm w dół
+                        podest.position.z = -245.5 * SCALE;
+                        ladderContainer.add(podest);
+                    }
                 } else if (handrailType === 'attic') {
                     // PRZEJŚCIE PRZEZ ATTYKĘ - jeden model 3D
                     var topOfMainRails = (totalHeight / 2);
@@ -1797,9 +3066,12 @@
                     var connSections = getLadderSectionsForLadder(connLadderNum);
                     var connTotalHeight = getTotalHeightForLadder(connLadderNum);
                     var connConnectorTypes = getConnectorTypesForLadder(connLadderNum);
+                    var connWspornikTypes = getWspornikTypesForLadder(connLadderNum);
+                    var defaultWspornik = getDefaultWspornikForLadder(connLadderNum);
 
                     // Oblicz ile par łączników potrzebujemy dla tej drabiny
                     var numConnectorPairs = 0;
+                    // Górne łączniki dla poręczy asekuracyjnych lub attyki (NIE dla podestu - podest je zastępuje)
                     if ((handrailType === 'safety' || handrailType === 'attic') && connSections.length > 0) {
                         numConnectorPairs++;  // Para na górze
                     }
@@ -1813,9 +3085,26 @@
                         connConnectorTypes.pop();
                     }
 
+                    // Inicjalizuj tablicę wspornikTypes dla tej drabiny
+                    var globalDistance = (connLadderNum === 1) ? globalWspornikDistance1 : globalWspornikDistance2;
+                    var connWspornikDistances = (connLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                    while (connWspornikTypes.length < numConnectorPairs) {
+                        connWspornikTypes.push(defaultWspornik);
+                    }
+                    while (connWspornikTypes.length > numConnectorPairs) {
+                        connWspornikTypes.pop();
+                    }
+                    // Inicjalizuj tablicę wspornikDistances dla tej drabiny
+                    while (connWspornikDistances.length < numConnectorPairs) {
+                        connWspornikDistances.push(globalDistance);
+                    }
+                    while (connWspornikDistances.length > numConnectorPairs) {
+                        connWspornikDistances.pop();
+                    }
+
                     var pairIndex = 0;
 
-                    // 1. Ceownik na górze (jeśli są poręcze lub attyka)
+                    // 1. Ceownik na górze (jeśli są poręcze lub attyka, NIE dla podestu - podest zastępuje łączniki)
                     if ((handrailType === 'safety' || handrailType === 'attic') && connSections.length > 0) {
                         // Góra jest wyrównana do maxHeight/2
                         var topY = (maxHeight / 2) - (DIMS.connectorHeight / 2) - 50;
@@ -1852,6 +3141,41 @@
                         rightConnectorTop.userData.ladderNum = connLadderNum;
                         ladderContainer.add(rightConnectorTop);
 
+                        // Wsporniki dla górnego uchwytu (tylko gdy to uchwyt, nie łącznik ani uchwyt poręczy)
+                        if (topConnectorType === 'uchwyt') {
+                            var wspornikType = connWspornikTypes[pairIndex] || defaultWspornik;
+                            if (wspornikType !== 'none') {
+                                // Oblicz custom distance offset
+                                var connWspornikDistances = (connLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                                var customDistance = connWspornikDistances[pairIndex] || wspornikDefaultDistances[wspornikType];
+                                var defaultDist = wspornikDefaultDistances[wspornikType];
+                                var distanceOffset = customDistance - defaultDist;
+                                var distanceZOffset = (connLadderNum === 1) ? -distanceOffset : distanceOffset;
+
+                                var leftWspornikTop = createWspornik(wspornikType, 'left', connLadderNum);
+                                if (leftWspornikTop) {
+                                    leftWspornikTop.position.x = (-railOffset + leftWspornikTop.userData.extraXOffset) * SCALE;
+                                    leftWspornikTop.position.y = (topY + topConnectorYOffset + leftWspornikTop.userData.extraYOffset) * SCALE;
+                                    leftWspornikTop.position.z = (geoConfig.wspornik.zOffset + geoConfig.zOffset + leftWspornikTop.userData.extraZOffset + distanceZOffset) * SCALE;
+                                    leftWspornikTop.userData.pairIndex = pairIndex;
+                                    leftWspornikTop.userData.ladderNum = connLadderNum;
+                                    ladderContainer.add(leftWspornikTop);
+                                    wspornikObjects.push(leftWspornikTop);
+                                }
+
+                                var rightWspornikTop = createWspornik(wspornikType, 'right', connLadderNum);
+                                if (rightWspornikTop) {
+                                    rightWspornikTop.position.x = (railOffset - rightWspornikTop.userData.extraXOffset) * SCALE;
+                                    rightWspornikTop.position.y = (topY + topConnectorYOffset + rightWspornikTop.userData.extraYOffset) * SCALE;
+                                    rightWspornikTop.position.z = (geoConfig.wspornik.zOffset + geoConfig.zOffset + rightWspornikTop.userData.extraZOffset + distanceZOffset) * SCALE;
+                                    rightWspornikTop.userData.pairIndex = pairIndex;
+                                    rightWspornikTop.userData.ladderNum = connLadderNum;
+                                    ladderContainer.add(rightWspornikTop);
+                                    wspornikObjects.push(rightWspornikTop);
+                                }
+                            }
+                        }
+
                         pairIndex++;
                     }
 
@@ -1885,7 +3209,107 @@
                             rightConn.userData.ladderNum = connLadderNum;
                             ladderContainer.add(rightConn);
 
+                            // Wsporniki dla uchwytu między sekcjami (tylko gdy to uchwyt, nie łącznik)
+                            if (connType === 'uchwyt') {
+                                var wspornikType = connWspornikTypes[pairIndex] || defaultWspornik;
+                                if (wspornikType !== 'none') {
+                                    // Oblicz custom distance offset
+                                    var midWspornikDistances = (connLadderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                                    var customDistance = midWspornikDistances[pairIndex] || wspornikDefaultDistances[wspornikType];
+                                    var defaultDist = wspornikDefaultDistances[wspornikType];
+                                    var distanceOffset = customDistance - defaultDist;
+                                    var distanceZOffset = (connLadderNum === 1) ? -distanceOffset : distanceOffset;
+
+                                    var leftWspornik = createWspornik(wspornikType, 'left', connLadderNum);
+                                    if (leftWspornik) {
+                                        leftWspornik.position.x = (-railOffset + leftWspornik.userData.extraXOffset) * SCALE;
+                                        leftWspornik.position.y = (connectionY + leftWspornik.userData.extraYOffset) * SCALE;
+                                        leftWspornik.position.z = (connGeoConfig.wspornik.zOffset + connGeoConfig.zOffset + leftWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                                        leftWspornik.userData.pairIndex = pairIndex;
+                                        leftWspornik.userData.ladderNum = connLadderNum;
+                                        ladderContainer.add(leftWspornik);
+                                        wspornikObjects.push(leftWspornik);
+                                    }
+
+                                    var rightWspornik = createWspornik(wspornikType, 'right', connLadderNum);
+                                    if (rightWspornik) {
+                                        rightWspornik.position.x = (railOffset - rightWspornik.userData.extraXOffset) * SCALE;
+                                        rightWspornik.position.y = (connectionY + rightWspornik.userData.extraYOffset) * SCALE;
+                                        rightWspornik.position.z = (connGeoConfig.wspornik.zOffset + connGeoConfig.zOffset + rightWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                                        rightWspornik.userData.pairIndex = pairIndex;
+                                        rightWspornik.userData.ladderNum = connLadderNum;
+                                        ladderContainer.add(rightWspornik);
+                                        wspornikObjects.push(rightWspornik);
+                                    }
+                                }
+                            }
+
                             pairIndex++;
+                        }
+                    }
+                }
+
+                // 3. Specjalny uchwyt między 2. a 3. szczeblem (tylko dla none, safety, platform - NIE attic)
+                if (handrailType !== 'attic') {
+                    for (var bracketLadderIdx = 0; bracketLadderIdx < laddersToRender.length; bracketLadderIdx++) {
+                        var bracketLadderNum = laddersToRender[bracketLadderIdx];
+                        var bracketSections = getLadderSectionsForLadder(bracketLadderNum);
+
+                        // Sprawdź czy uchwyt jest włączony dla tej drabiny
+                        var midRungBracketEnabled = (bracketLadderNum === 1) ? midRungBracket1 : midRungBracket2;
+
+                        if (midRungBracketEnabled && bracketSections.length > 0) {
+                            var bracketGeoConfig = ladderGeometryConfig[bracketLadderNum];
+
+                            // Pozycja Y: między 2. a 3. szczeblem od góry
+                            // 2. szczebel: 136 + 275 = 411mm od góry
+                            // 3. szczebel: 136 + 550 = 686mm od góry
+                            // Środek: 548.5mm od góry drabiny
+                            var midRungY = (maxHeight / 2) - 548.5;
+
+                            // Pobierz typ łącznika dla tej drabiny (uchwyt lub sciskany)
+                            var midRungConnType = (bracketLadderNum === 1) ? midRungBracketConnType1 : midRungBracketConnType2;
+
+                            // Renderuj lewy i prawy uchwyt/sciskany (isMidRung = true)
+                            var leftMidConn = createConnector(midRungConnType, 'left', bracketLadderNum, true);
+                            leftMidConn.position.x = (-railOffset + 15 - 15) * SCALE;
+                            leftMidConn.position.y = midRungY * SCALE;
+                            leftMidConn.position.z = (-62.5 + bracketGeoConfig.zOffset + bracketGeoConfig.connector.uchwytZOffset) * SCALE;
+                            ladderContainer.add(leftMidConn);
+
+                            var rightMidConn = createConnector(midRungConnType, 'right', bracketLadderNum, true);
+                            rightMidConn.position.x = (railOffset - 15 + 15) * SCALE;
+                            rightMidConn.position.y = midRungY * SCALE;
+                            rightMidConn.position.z = (-62.5 + bracketGeoConfig.zOffset + bracketGeoConfig.connector.uchwytZOffset) * SCALE;
+                            ladderContainer.add(rightMidConn);
+
+                            // Wsporniki dla tego uchwytu
+                            var midWspornikType = (bracketLadderNum === 1) ? midRungBracketWspornikType1 : midRungBracketWspornikType2;
+                            var midWspornikDistance = (bracketLadderNum === 1) ? midRungBracketDistance1 : midRungBracketDistance2;
+
+                            if (midWspornikType !== 'none') {
+                                var defaultDist = wspornikDefaultDistances[midWspornikType];
+                                var distanceOffset = midWspornikDistance - defaultDist;
+                                var distanceZOffset = (bracketLadderNum === 1) ? -distanceOffset : distanceOffset;
+
+                                var leftMidWspornik = createWspornik(midWspornikType, 'left', bracketLadderNum, true);
+                                if (leftMidWspornik) {
+                                    leftMidWspornik.position.x = (-railOffset + leftMidWspornik.userData.extraXOffset) * SCALE;
+                                    leftMidWspornik.position.y = (midRungY + leftMidWspornik.userData.extraYOffset) * SCALE;
+                                    leftMidWspornik.position.z = (bracketGeoConfig.wspornik.zOffset + bracketGeoConfig.zOffset + leftMidWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                                    ladderContainer.add(leftMidWspornik);
+                                    wspornikObjects.push(leftMidWspornik);
+                                }
+
+                                var rightMidWspornik = createWspornik(midWspornikType, 'right', bracketLadderNum, true);
+                                if (rightMidWspornik) {
+                                    rightMidWspornik.position.x = (railOffset - rightMidWspornik.userData.extraXOffset) * SCALE;
+                                    rightMidWspornik.position.y = (midRungY + rightMidWspornik.userData.extraYOffset) * SCALE;
+                                    rightMidWspornik.position.z = (bracketGeoConfig.wspornik.zOffset + bracketGeoConfig.zOffset + rightMidWspornik.userData.extraZOffset + distanceZOffset) * SCALE;
+                                    ladderContainer.add(rightMidWspornik);
+                                    wspornikObjects.push(rightMidWspornik);
+                                }
+                            }
                         }
                     }
                 }
@@ -1902,6 +3326,12 @@
                 // Renderuj kosz ochronny (obręcze)
                 if (safetyCageCount1 > 0 || safetyCageCount2 > 0) {
                     renderSafetyCage();
+                    // Sprawdź kolizje z obręczami
+                    var collisions = checkCageCollisions();
+                    showCollisionWarning(collisions);
+                } else {
+                    // Ukryj ostrzeżenie jeśli nie ma kosza
+                    document.getElementById('collisionWarning').style.display = 'none';
                 }
 
                 // Odtwórz podgląd uchwytów ściskanych jeśli tryb aktywny
@@ -2196,12 +3626,46 @@
             document.getElementById('modelColorPicker').addEventListener('input', function() {
                 var newColor = new THREE.Color(this.value);
                 modelColor = newColor;
+                if (!useGalvanizedTexture) {
+                    scene.traverse(function(child) {
+                        if (child.isMesh && child.material) {
+                            child.material.color = newColor;
+                        }
+                    });
+                }
+            });
+
+            // Przełączanie tekstury ocynku
+            document.getElementById('textureToggle').addEventListener('change', function() {
+                useGalvanizedTexture = this.checked;
+                var colorPicker = document.getElementById('modelColorPicker');
+                colorPicker.disabled = useGalvanizedTexture;
+                colorPicker.style.opacity = useGalvanizedTexture ? '0.5' : '1';
+
+                // Pobierz aktualny kolor z pickera
+                var pickerColor = new THREE.Color(colorPicker.value);
+
                 scene.traverse(function(child) {
                     if (child.isMesh && child.material) {
-                        child.material.color = newColor;
+                        if (useGalvanizedTexture) {
+                            child.material.map = galvanizedTexture;
+                            child.material.color = new THREE.Color(0xffffff);
+                            child.material.metalness = 0.1;
+                            child.material.roughness = 0.9;
+                        } else {
+                            child.material.map = null;
+                            child.material.color = pickerColor;
+                            child.material.metalness = 0.3;
+                            child.material.roughness = 0.5;
+                        }
+                        child.material.needsUpdate = true;
                     }
                 });
             });
+
+            // Na start wyłącz color picker bo tekstura jest włączona
+            document.getElementById('modelColorPicker').disabled = true;
+            document.getElementById('modelColorPicker').style.opacity = '0.5';
 
             // Przyciski dla Drabiny 1
             document.getElementById('add7Btn1').addEventListener('click', function() {
@@ -2233,6 +3697,68 @@
                 autoAddSciskaneForKoncowa(newValue, 2, sciskaneHandles2);
                 createLadder();
             });
+
+            // Globalny slider odległości wsporników dla drabiny 1
+            document.getElementById('wspornikGlobalSlider1').addEventListener('input', function(e) {
+                var distanceMm = parseInt(e.target.value);
+                var type = getWspornikTypeFromDistance(distanceMm);
+                var typeNames = { 'krotki': 'krótki', 'sredni': 'średni', 'dlugi': 'długi' };
+                document.getElementById('wspornikGlobalValue1').textContent = Math.round(distanceMm / 10);
+                document.getElementById('wspornikGlobalType1').textContent = typeNames[type];
+                updateGlobalWspornikDistance(1, distanceMm);
+                createLadder();
+            });
+
+            // Checkbox wyłączenia wsporników dla drabiny 1
+            document.getElementById('wspornikDisable1').addEventListener('change', function(e) {
+                var disabled = e.target.checked;
+                document.getElementById('wspornikSliderContainer1').style.opacity = disabled ? '0.3' : '1';
+                document.getElementById('wspornikGlobalSlider1').disabled = disabled;
+                toggleAllWsporniki(1, disabled);
+                createLadder();
+            });
+
+            // Globalny slider odległości wsporników dla drabiny 2
+            document.getElementById('wspornikGlobalSlider2').addEventListener('input', function(e) {
+                var distanceMm = parseInt(e.target.value);
+                var type = getWspornikTypeFromDistance(distanceMm);
+                var typeNames = { 'krotki': 'krótki', 'sredni': 'średni', 'dlugi': 'długi' };
+                document.getElementById('wspornikGlobalValue2').textContent = Math.round(distanceMm / 10);
+                document.getElementById('wspornikGlobalType2').textContent = typeNames[type];
+                updateGlobalWspornikDistance(2, distanceMm);
+                createLadder();
+            });
+
+            // Checkbox wyłączenia wsporników dla drabiny 2
+            document.getElementById('wspornikDisable2').addEventListener('change', function(e) {
+                var disabled = e.target.checked;
+                document.getElementById('wspornikSliderContainer2').style.opacity = disabled ? '0.3' : '1';
+                document.getElementById('wspornikGlobalSlider2').disabled = disabled;
+                toggleAllWsporniki(2, disabled);
+                createLadder();
+            });
+
+            // Funkcja aktualizująca typy wsporników dla drabiny
+            function updateWspornikTypesForLadder(ladderNum, newType) {
+                var types = (ladderNum === 1) ? wspornikTypes1 : wspornikTypes2;
+                var distances = (ladderNum === 1) ? wspornikDistances1 : wspornikDistances2;
+                var connTypes = (ladderNum === 1) ? connectorTypes1 : connectorTypes2;
+                var globalDistance = (ladderNum === 1) ? globalWspornikDistance1 : globalWspornikDistance2;
+                // Aktualizuj tylko pozycje z uchwytami (nie łącznikami)
+                for (var i = 0; i < connTypes.length; i++) {
+                    if (connTypes[i] === 'uchwyt') {
+                        types[i] = newType;
+                        distances[i] = globalDistance;
+                    }
+                }
+                if (ladderNum === 1) {
+                    wspornikTypes1 = types;
+                    wspornikDistances1 = distances;
+                } else {
+                    wspornikTypes2 = types;
+                    wspornikDistances2 = distances;
+                }
+            }
 
             // Wspólne przyciski w trybie attyki
             document.getElementById('techBtn2').addEventListener('click', function() {
@@ -2297,6 +3823,11 @@
                 document.getElementById('info').style.display = 'none';
             });
 
+            // Zamykanie ostrzeżenia o kolizji
+            document.getElementById('collisionWarningClose').addEventListener('click', function() {
+                hideCollisionWarning();
+            });
+
             // Przycisk oczka - chowanie/pokazywanie paneli
             var panelsVisible = true;
             var toggleBtn = document.getElementById('togglePanelsBtn');
@@ -2342,10 +3873,13 @@
             var initialPinchDistance = null;
             var lastZoom = 50;
             var lastPanCenter = { x: 0, y: 0 };
-            
+            var clickStartPosition = { x: 0, y: 0 }; // Pozycja mousedown dla detekcji kliknięcia
+            var CLICK_THRESHOLD = 5; // Max dystans w pikselach dla kliknięcia
+
             function onPointerStart(x, y) {
                 isDragging = true;
                 previousPosition = { x: x, y: y };
+                clickStartPosition = { x: x, y: y }; // Zapamiętaj pozycję startu dla detekcji kliknięcia
             }
             
             function onPointerMove(x, y) {
@@ -2366,6 +3900,15 @@
 
             // Klikanie na łączniki lub miarka lub uchwyty ściskane
             renderer.domElement.addEventListener('click', function(e) {
+                // Sprawdź czy to prawdziwe kliknięcie (nie przeciąganie)
+                var clickDist = Math.sqrt(
+                    Math.pow(e.clientX - clickStartPosition.x, 2) +
+                    Math.pow(e.clientY - clickStartPosition.y, 2)
+                );
+                if (clickDist > CLICK_THRESHOLD) {
+                    return; // To było przeciąganie, nie kliknięcie
+                }
+
                 // Oblicz pozycję myszy w układzie normalized device coordinates
                 mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -2383,54 +3926,91 @@
 
                 // Tryb uchwytów ściskanych
                 if (sciskaneMode) {
-                    // Sprawdź kliknięcie na podgląd (dodanie pary)
+                    // NAJPIERW sprawdź czy kliknięto na uchwyt między 2. a 3. szczeblem
+                    var midRungWspornikIntersects = raycaster.intersectObjects(wspornikObjects, true);
+                    for (var i = 0; i < midRungWspornikIntersects.length; i++) {
+                        var obj = midRungWspornikIntersects[i].object;
+                        while (obj.parent && !obj.userData.isWspornik) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isWspornik && obj.userData.isMidRungBracket) {
+                            openConnectionPanel(null, obj);
+                            return;
+                        }
+                    }
+
+                    var midRungConnectorIntersects = raycaster.intersectObjects(connectorObjects, true);
+                    for (var i = 0; i < midRungConnectorIntersects.length; i++) {
+                        var obj = midRungConnectorIntersects[i].object;
+                        while (obj.parent && !obj.userData.isConnector) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isConnector && obj.userData.isMidRungBracket) {
+                            openConnectionPanel(obj, null);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź kliknięcie na już umieszczone uchwyty ściskane (otwórz panel edycji)
+                    var placedIntersects = raycaster.intersectObjects(sciskanePlacedObjects, true);
+                    if (placedIntersects.length > 0) {
+                        var obj = placedIntersects[0].object;
+                        // Znajdź root model który jest w sciskanePlacedObjects (bo tam jest sciskaneOffsetFromBottom)
+                        while (obj && sciskanePlacedObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isSciskanePlaced) {
+                            // Otwórz panel edycji uchwytu ściskanego
+                            var offsetFromBottom = obj.userData.sciskaneOffsetFromBottom;
+                            var clickedLadderNum = obj.userData.ladderNum || 1;
+                            openSciskaneEditPanel(offsetFromBottom, clickedLadderNum);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź przecięcia z wspornikami (zwykłymi, nie mid-rung) - PRZED podglądem
+                    var wspornikIntersects = raycaster.intersectObjects(wspornikObjects, true);
+                    if (wspornikIntersects.length > 0) {
+                        var obj = wspornikIntersects[0].object;
+                        // Znajdź root model który jest w wspornikObjects (bo tam jest pairIndex)
+                        while (obj && wspornikObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isWspornik && !obj.userData.isMidRungBracket) {
+                            openConnectionPanel(null, obj);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź przecięcia z łącznikami (zwykłymi, nie mid-rung) - PRZED podglądem
+                    var connIntersects = raycaster.intersectObjects(connectorObjects, true);
+                    if (connIntersects.length > 0) {
+                        var obj = connIntersects[0].object;
+                        // Znajdź root model który jest w connectorObjects (bo tam jest pairIndex)
+                        while (obj && connectorObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isConnector && !obj.userData.isMidRungBracket) {
+                            openConnectionPanel(obj, null);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź kliknięcie na podgląd (dodanie pary) - NA KOŃCU, najniższy priorytet
                     var intersects = raycaster.intersectObjects(sciskanePreviewObjects, true);
                     if (intersects.length > 0) {
                         var obj = intersects[0].object;
-                        while (obj.parent && !obj.userData.isSciskanePreview) {
+                        // Znajdź root model który jest w sciskanePreviewObjects (bo tam jest previewY)
+                        while (obj && sciskanePreviewObjects.indexOf(obj) === -1) {
                             obj = obj.parent;
                         }
-                        if (obj.userData.isSciskanePreview) {
+                        if (obj && obj.userData.isSciskanePreview) {
                             addSciskaneHandle(obj.userData.previewY, obj.userData.ladderNum);
                             return;
                         }
                     }
-                    // Sprawdź kliknięcie na już umieszczone (usunięcie pary)
-                    var placedIntersects = raycaster.intersectObjects(sciskanePlacedObjects, true);
-                    if (placedIntersects.length > 0) {
-                        var obj = placedIntersects[0].object;
-                        while (obj.parent && !obj.userData.isSciskanePlaced) {
-                            obj = obj.parent;
-                        }
-                        if (obj.userData.isSciskanePlaced) {
-                            // Usuń uchwyt po offsetFromBottom - użyj ladderNum z klikniętego uchwytu
-                            var offsetToRemove = obj.userData.sciskaneOffsetFromBottom;
-                            var clickedLadderNum = obj.userData.ladderNum || 1;
-                            var targetHandles = (clickedLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
-                            for (var i = 0; i < targetHandles.length; i++) {
-                                if (targetHandles[i].offsetFromBottom === offsetToRemove) {
-                                    targetHandles.splice(i, 1);
-                                    createLadder();
-                                    break;
-                                }
-                            }
-                            return;
-                        }
-                    }
-                    return;
-                }
 
-                // Sprawdź przecięcia z łącznikami
-                var intersects = raycaster.intersectObjects(connectorObjects, true);
-                if (intersects.length > 0) {
-                    // Znajdź główny obiekt łącznika (parent)
-                    var obj = intersects[0].object;
-                    while (obj.parent && !obj.userData.isConnector) {
-                        obj = obj.parent;
-                    }
-                    if (obj.userData.isConnector) {
-                        openRotationPanel(obj);
-                    }
+                    return;
                 }
             });
 
@@ -2566,55 +4146,94 @@
 
                 // Tryb uchwytów ściskanych
                 if (sciskaneMode) {
-                    // Sprawdź kliknięcie na podgląd (dodanie pary)
+                    // NAJPIERW sprawdź czy kliknięto na uchwyt między 2. a 3. szczeblem
+                    var midRungWspornikIntersects = raycaster.intersectObjects(wspornikObjects, true);
+                    for (var i = 0; i < midRungWspornikIntersects.length; i++) {
+                        var obj = midRungWspornikIntersects[i].object;
+                        while (obj.parent && !obj.userData.isWspornik) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isWspornik && obj.userData.isMidRungBracket) {
+                            openConnectionPanel(null, obj);
+                            return;
+                        }
+                    }
+
+                    var midRungConnectorIntersects = raycaster.intersectObjects(connectorObjects, true);
+                    for (var i = 0; i < midRungConnectorIntersects.length; i++) {
+                        var obj = midRungConnectorIntersects[i].object;
+                        while (obj.parent && !obj.userData.isConnector) {
+                            obj = obj.parent;
+                        }
+                        if (obj.userData.isConnector && obj.userData.isMidRungBracket) {
+                            openConnectionPanel(obj, null);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź kliknięcie na już umieszczone uchwyty ściskane (otwórz panel edycji)
+                    var placedIntersects = raycaster.intersectObjects(sciskanePlacedObjects, true);
+                    if (placedIntersects.length > 0) {
+                        var obj = placedIntersects[0].object;
+                        // Znajdź root model który jest w sciskanePlacedObjects (bo tam jest sciskaneOffsetFromBottom)
+                        while (obj && sciskanePlacedObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isSciskanePlaced) {
+                            // Otwórz panel edycji uchwytu ściskanego
+                            var offsetFromBottom = obj.userData.sciskaneOffsetFromBottom;
+                            var clickedLadderNum = obj.userData.ladderNum || 1;
+                            openSciskaneEditPanel(offsetFromBottom, clickedLadderNum);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź przecięcia z wspornikami (zwykłymi, nie mid-rung) - PRZED podglądem
+                    var wspornikIntersects = raycaster.intersectObjects(wspornikObjects, true);
+                    if (wspornikIntersects.length > 0) {
+                        var obj = wspornikIntersects[0].object;
+                        // Znajdź root model który jest w wspornikObjects (bo tam jest pairIndex)
+                        while (obj && wspornikObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isWspornik && !obj.userData.isMidRungBracket) {
+                            openConnectionPanel(null, obj);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź przecięcia z łącznikami (zwykłymi, nie mid-rung) - PRZED podglądem
+                    var connIntersects = raycaster.intersectObjects(connectorObjects, true);
+                    if (connIntersects.length > 0) {
+                        var obj = connIntersects[0].object;
+                        // Znajdź root model który jest w connectorObjects (bo tam jest pairIndex)
+                        while (obj && connectorObjects.indexOf(obj) === -1) {
+                            obj = obj.parent;
+                        }
+                        if (obj && obj.userData.isConnector && !obj.userData.isMidRungBracket) {
+                            openConnectionPanel(obj, null);
+                            return;
+                        }
+                    }
+
+                    // Sprawdź kliknięcie na podgląd (dodanie pary) - NA KOŃCU, najniższy priorytet
                     var intersects = raycaster.intersectObjects(sciskanePreviewObjects, true);
                     if (intersects.length > 0) {
                         var obj = intersects[0].object;
-                        while (obj.parent && !obj.userData.isSciskanePreview) {
+                        // Znajdź root model który jest w sciskanePreviewObjects (bo tam jest previewY)
+                        while (obj && sciskanePreviewObjects.indexOf(obj) === -1) {
                             obj = obj.parent;
                         }
-                        if (obj.userData.isSciskanePreview) {
+                        if (obj && obj.userData.isSciskanePreview) {
                             addSciskaneHandle(obj.userData.previewY, obj.userData.ladderNum);
                             return;
                         }
                     }
-                    // Sprawdź kliknięcie na już umieszczone (usunięcie pary)
-                    var placedIntersects = raycaster.intersectObjects(sciskanePlacedObjects, true);
-                    if (placedIntersects.length > 0) {
-                        var obj = placedIntersects[0].object;
-                        while (obj.parent && !obj.userData.isSciskanePlaced) {
-                            obj = obj.parent;
-                        }
-                        if (obj.userData.isSciskanePlaced) {
-                            var offsetToRemove = obj.userData.sciskaneOffsetFromBottom;
-                            var clickedLadderNum = obj.userData.ladderNum || 1;
-                            var targetHandles = (clickedLadderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
-                            for (var i = 0; i < targetHandles.length; i++) {
-                                if (targetHandles[i].offsetFromBottom === offsetToRemove) {
-                                    targetHandles.splice(i, 1);
-                                    createLadder();
-                                    break;
-                                }
-                            }
-                            return;
-                        }
-                    }
+
                     return;
                 }
-
-                // Sprawdź przecięcia z łącznikami
-                var intersects = raycaster.intersectObjects(connectorObjects, true);
-                if (intersects.length > 0) {
-                    var obj = intersects[0].object;
-                    while (obj.parent && !obj.userData.isConnector) {
-                        obj = obj.parent;
-                    }
-                    if (obj.userData.isConnector) {
-                        openRotationPanel(obj);
-                    }
-                }
             }
-            
+
             // Scroll zoomuje
             renderer.domElement.addEventListener('wheel', function(e) {
                 e.preventDefault();
@@ -2777,7 +4396,7 @@
                 var totalHeight = getTotalHeight();
                 
                 var totalHeightWithHandrails = totalHeight;
-                if (handrailType === 'safety') {
+                if (handrailType === 'safety' || handrailType === 'platform') {
                     totalHeightWithHandrails += DIMS.handrailVertical;
                 } else if (handrailType === 'attic') {
                     totalHeightWithHandrails += DIMS.atticRailHeight;
@@ -2855,29 +4474,37 @@
                 var railOffset = 265 * scale;
                 
                 var ladderYOffset = 0;
-                if (handrailType === 'safety') {
+                if (handrailType === 'safety' || handrailType === 'platform') {
                     ladderYOffset = DIMS.handrailVertical * scale;
                 } else if (handrailType === 'attic') {
                     ladderYOffset = DIMS.atticRailHeight * scale;
                 }
-                
-                // Rysuj poręcze asekuracyjne lub przejście przez attykę
-                if (handrailType === 'safety') {
-                    // PORĘCZE ASEKURACYJNE - widok z przodu
+
+                // Rysuj poręcze asekuracyjne, podest lub przejście przez attykę
+                if (handrailType === 'safety' || handrailType === 'platform') {
+                    // PORĘCZE ASEKURACYJNE / Z PODESTEM - widok z przodu
                     var handrailVertH = DIMS.handrailVertical * scale;
                     var handrailHorH = DIMS.handrailHorizontal * scale;
                     var handrailW = DIMS.handrailWidth * scale;
-                    
-                    techCtx.fillStyle = '#d0d0d0';
+
+                    techCtx.fillStyle = handrailType === 'platform' ? '#b0d0b0' : '#d0d0d0';
                     techCtx.strokeStyle = '#000';
                     techCtx.lineWidth = 2;
-                    
+
                     // Lewa i prawa poręcz - pionowe przedłużenia
                     techCtx.fillRect(-railOffset - railW/2, -totalHeightWithHandrails * scale / 2, railW, handrailVertH);
                     techCtx.strokeRect(-railOffset - railW/2, -totalHeightWithHandrails * scale / 2, railW, handrailVertH);
-                    
+
                     techCtx.fillRect(railOffset - railW/2, -totalHeightWithHandrails * scale / 2, railW, handrailVertH);
                     techCtx.strokeRect(railOffset - railW/2, -totalHeightWithHandrails * scale / 2, railW, handrailVertH);
+
+                    // Dla podestu: narysuj poziomą belkę łączącą obie strony
+                    if (handrailType === 'platform') {
+                        var podestTopY = -totalHeightWithHandrails * scale / 2;
+                        techCtx.fillStyle = '#90c090';
+                        techCtx.fillRect(-railOffset - railW/2, podestTopY, (railOffset * 2) + railW, handrailW);
+                        techCtx.strokeRect(-railOffset - railW/2, podestTopY, (railOffset * 2) + railW, handrailW);
+                    }
                 } else if (handrailType === 'attic') {
                     // PRZEJŚCIE PRZEZ ATTYKĘ - widok z przodu
                     var atticRailH = DIMS.atticRailHeight * scale;
@@ -3092,31 +4719,32 @@
                     var railD = DIMS.railDepth * scale;
                     var rungW = DIMS.rungWidth * scale;
                     
-                    // Rysuj poręcze asekuracyjne lub przejście przez attykę
-                    if (handrailType === 'safety') {
-                        // PORĘCZE ASEKURACYJNE - widok z boku
+                    // Rysuj poręcze asekuracyjne, podest lub przejście przez attykę
+                    if (handrailType === 'safety' || handrailType === 'platform') {
+                        // PORĘCZE ASEKURACYJNE / Z PODESTEM - widok z boku
                         var handrailVertH = DIMS.handrailVertical * scale;
                         var handrailHorH = DIMS.handrailHorizontal * scale;
                         var handrailW = DIMS.handrailWidth * scale;
-                        
-                        techCtx.fillStyle = '#d0d0d0';
+
+                        techCtx.fillStyle = handrailType === 'platform' ? '#b0d0b0' : '#d0d0d0';
                         techCtx.strokeStyle = '#000';
                         techCtx.lineWidth = 2;
-                        
+
                         // Pionowe przedłużenie
                         techCtx.fillRect(-railD/2, -totalHeightWithHandrails * scale / 2, railD, handrailVertH);
                         techCtx.strokeRect(-railD/2, -totalHeightWithHandrails * scale / 2, railD, handrailVertH);
-                        
-                        // Ramię poziome
+
+                        // Ramię poziome (lub podest)
                         techCtx.fillRect(-railD/2, -totalHeightWithHandrails * scale / 2 - handrailW/2, handrailHorH, handrailW);
                         techCtx.strokeRect(-railD/2, -totalHeightWithHandrails * scale / 2 - handrailW/2, handrailHorH, handrailW);
-                        
+
+                        var dimLabel = handrailType === 'platform' ? 'podest' : DIMS.handrailHorizontal + 'mm';
                         drawDimension(
                             -railD/2,
                             -totalHeightWithHandrails * scale / 2 - handrailW/2 - 20,
                             -railD/2 + handrailHorH,
                             -totalHeightWithHandrails * scale / 2 - handrailW/2 - 20,
-                            DIMS.handrailHorizontal + 'mm',
+                            dimLabel,
                             'horizontal',
                             0
                         );
@@ -3147,19 +4775,19 @@
                     }
                     
                     var ladderYOffset = 0;
-                    if (handrailType === 'safety') {
+                    if (handrailType === 'safety' || handrailType === 'platform') {
                         ladderYOffset = DIMS.handrailVertical * scale;
                     } else if (handrailType === 'attic') {
                         ladderYOffset = DIMS.atticRailHeight * scale;
                     }
                     var ladderStartY = handrailType !== "none" ? -totalHeightWithHandrails * scale / 2 + ladderYOffset : -halfHeight;
-                    
+
                     techCtx.fillStyle = '#e0e0e0';
                     techCtx.strokeStyle = '#000';
                     techCtx.lineWidth = 2;
                     techCtx.fillRect(-railD/2, ladderStartY, railD, totalHeight * scale);
                     techCtx.strokeRect(-railD/2, ladderStartY, railD, totalHeight * scale);
-                    
+
                     var currentHeightOffset = 0;
                     for (var s = 0; s < sections.length; s++) {
                         var section = sections[s];
@@ -3276,10 +4904,13 @@
                     techCanvas.width / 2, specY + 30);
                 
                 if (handrailType === 'safety') {
-                    techCtx.fillText('Poręcze asekuracyjne: ' + DIMS.handrailVertical + 'mm (pion) + ' + DIMS.handrailHorizontal + 'mm (poziom)', 
+                    techCtx.fillText('Poręcze asekuracyjne: ' + DIMS.handrailVertical + 'mm (pion) + ' + DIMS.handrailHorizontal + 'mm (poziom)',
+                        techCanvas.width / 2, specY + 45);
+                } else if (handrailType === 'platform') {
+                    techCtx.fillText('Poręcze z podestem: ' + DIMS.handrailVertical + 'mm (pion) + podest',
                         techCanvas.width / 2, specY + 45);
                 } else if (handrailType === 'attic') {
-                    techCtx.fillText('Przejście przez attykę: ' + DIMS.atticRailHeight + 'mm (podłużnice) + ' + DIMS.atticRungs + ' szczeble', 
+                    techCtx.fillText('Przejście przez attykę: ' + DIMS.atticRailHeight + 'mm (podłużnice) + ' + DIMS.atticRungs + ' szczeble',
                         techCanvas.width / 2, specY + 45);
                 }
                 
