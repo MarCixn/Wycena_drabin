@@ -497,6 +497,16 @@
                 Ocynk
             </label>
         </div>
+        <!-- Ustawienia outline -->
+        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.7); padding: 5px 8px; border-radius: 5px;">
+            <label style="color: white; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                <input type="checkbox" id="outlineToggle" checked style="cursor: pointer;">
+                Outline
+            </label>
+            <input type="color" id="outlineColorPicker" value="#000000" style="width: 30px; height: 20px; border: none; border-radius: 3px; cursor: pointer;">
+            <input type="range" id="outlineThreshold" min="1" max="89" value="25" style="width: 50px; cursor: pointer;" title="Próg krawędzi">
+            <input type="range" id="outlineOpacity" min="10" max="100" value="60" style="width: 50px; cursor: pointer;" title="Przezroczystość outline">
+        </div>
     </div>
 
     <!-- Kontrolki dla attyki - przyciski u góry (prawy górny róg) -->
@@ -627,6 +637,12 @@
         var globalWspornikDistance2 = 215; // Globalna odległość wsporników w mm
         var wspornikDisabled2 = false; // Czy wsporniki wyłączone
 
+        // Ustawienia outline
+        var outlineEnabled = true;
+        var outlineColor = 0x000000; // Czarny dla kontrastu
+        var outlineThreshold = 25; // Balans między detalami a czystością
+        var outlineOpacity = 0.6; // Wyraźny ale nie przytłaczający
+
         // Centralna konfiguracja geometrii dla każdej drabiny
         var ladderGeometryConfig = {
             1: {
@@ -733,27 +749,46 @@
         var connectorTypes = [];
 
         // Funkcja ładowania wszystkich modeli OBJ
-        // Tekstura ocynku z pliku JPG (modularna)
+        // Tekstury PBR ocynku
         var textureLoader = new THREE.TextureLoader();
-        var galvanizedTexture = textureLoader.load('ocynk.jpg', function(texture) {
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(0.008, 0.008);
-        });
+        var textureRepeat = 0.008;
+
+        var galvanizedTexture = textureLoader.load('textures/ocynk.png');
         galvanizedTexture.wrapS = THREE.RepeatWrapping;
         galvanizedTexture.wrapT = THREE.RepeatWrapping;
-        galvanizedTexture.repeat.set(0.008, 0.008);
+        galvanizedTexture.repeat.set(textureRepeat, textureRepeat);
+        galvanizedTexture.encoding = THREE.sRGBEncoding;
+
+        var galvanizedRoughness = textureLoader.load('textures/Metal_Galvanized_001_roughness.jpg');
+        galvanizedRoughness.wrapS = THREE.RepeatWrapping;
+        galvanizedRoughness.wrapT = THREE.RepeatWrapping;
+        galvanizedRoughness.repeat.set(textureRepeat, textureRepeat);
+
+        // Funkcja pomocnicza do dodawania outline do sklonowanego modelu (globalna)
+        function addOutlineToModel(model) {
+            if (!outlineEnabled) return;
+            model.traverse(function(child) {
+                if (child.isMesh && child.geometry) {
+                    var edges = new THREE.EdgesGeometry(child.geometry, outlineThreshold);
+                    var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+                        color: outlineColor,
+                        transparent: true,
+                        opacity: outlineOpacity
+                    }));
+                    line.userData.isOutline = true;
+                    child.add(line);
+                }
+            });
+        }
 
         function loadAllModels(callback) {
             var loader = new THREE.OBJLoader();
             var modelsToLoad = 26; // 1 powielana + 7 końcowych + uchwyt + lacznik + porecz + uchwyt poreczy + attyka + krata wema + sciskany + obrecz + zamykanie + 3 kątowniki + 5 wsporników + podest
             var modelsLoadedCount = 0;
 
-            // Materiał dla modeli - ocynkowany metal
+            // Materiał dla modeli - ocynkowany metal PBR
             var modelMaterial = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                metalness: 0.1,
-                roughness: 0.9,
+                color: new THREE.Color(230/255, 235/255, 240/255),  // Jasny szary - maksymalna czytelność
                 map: galvanizedTexture
             });
 
@@ -777,10 +812,12 @@
                 obj.position.set(-center.x, -center.y, -center.z);
                 container.add(obj);
 
-                // Zastosuj materiał
+                // Zastosuj materiał i cienie
                 obj.traverse(function(child) {
                     if (child.isMesh) {
                         child.material = modelMaterial.clone();
+                        child.castShadow = true;
+                        child.receiveShadow = true;
                     }
                 });
 
@@ -1121,6 +1158,9 @@
         var measurePoint2 = null;
         var measureLine = null;
         var measureLabel = null;
+        var measureSphere1 = null;
+        var measureSphere2 = null;
+        var measurePreviewSphere = null;
 
         // Panel łączenia (połączony dla łączników i wsporników)
         var selectedWspornik = null;
@@ -1785,31 +1825,117 @@
                 btn.style.background = 'rgba(50, 100, 200, 0.9)';
                 btn.style.border = '2px solid white';
                 clearMeasureLine();
+                clearMeasurePreview();
             }
         }
 
         function clearMeasureLine() {
             if (measureLine) {
-                scene.remove(measureLine);
+                ladderContainer.remove(measureLine);
                 measureLine = null;
+            }
+            if (measureSphere1) {
+                ladderContainer.remove(measureSphere1);
+                measureSphere1 = null;
+            }
+            if (measureSphere2) {
+                ladderContainer.remove(measureSphere2);
+                measureSphere2 = null;
             }
         }
 
-        function addMeasurePoint(point) {
-            if (!measurePoint1) {
-                measurePoint1 = point.clone();
-                // Dodaj wizualną kulkę w punkcie 1
+        function clearMeasurePreview() {
+            if (measurePreviewSphere) {
+                ladderContainer.remove(measurePreviewSphere);
+                measurePreviewSphere = null;
+            }
+        }
+
+        function updateMeasurePreview(worldPoint) {
+            var localPoint = ladderContainer.worldToLocal(worldPoint.clone());
+
+            // Oblicz rozmiar sfery na podstawie odległości kamery
+            var cameraDistance = camera.position.distanceTo(worldPoint);
+            var sphereRadius = cameraDistance * 0.008;
+            sphereRadius = Math.max(sphereRadius, 0.01);
+            sphereRadius = Math.min(sphereRadius, 0.08);
+
+            if (!measurePreviewSphere) {
+                // Utwórz podgląd sfery
+                var geometry = new THREE.SphereGeometry(sphereRadius, 16, 16);
+                var material = new THREE.MeshBasicMaterial({
+                    color: 0xffff00,  // Żółty dla podglądu
+                    transparent: true,
+                    opacity: 0.5
+                });
+                measurePreviewSphere = new THREE.Mesh(geometry, material);
+                measurePreviewSphere.userData.isMeasureObject = true;
+                ladderContainer.add(measurePreviewSphere);
             } else {
-                measurePoint2 = point.clone();
+                // Aktualizuj rozmiar
+                measurePreviewSphere.geometry.dispose();
+                measurePreviewSphere.geometry = new THREE.SphereGeometry(sphereRadius, 16, 16);
+            }
+
+            measurePreviewSphere.position.copy(localPoint);
+        }
+
+        function createMeasureSphere(point) {
+            // Oblicz rozmiar sfery na podstawie odległości kamery
+            var cameraDistance = camera.position.distanceTo(point);
+            var sphereRadius = cameraDistance * 0.008; // 0.8% odległości kamery
+            sphereRadius = Math.max(sphereRadius, 0.01); // Minimum 0.01 jednostki
+            sphereRadius = Math.min(sphereRadius, 0.08); // Maximum 0.08 jednostki
+
+            var geometry = new THREE.SphereGeometry(sphereRadius, 16, 16);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.8
+            });
+            var sphere = new THREE.Mesh(geometry, material);
+            sphere.position.copy(point);
+            sphere.userData.isMeasureObject = true;
+            ladderContainer.add(sphere);
+            return sphere;
+        }
+
+        function addMeasurePoint(point) {
+            // Wyczyść podgląd
+            clearMeasurePreview();
+
+            // Przekonwertuj punkt z koordynatów świata na lokalne koordynaty ladderContainer
+            var localPoint = ladderContainer.worldToLocal(point.clone());
+
+            if (!measurePoint1) {
+                // Wyczyść poprzednie pomiary
+                clearMeasureLine();
+
+                measurePoint1 = localPoint.clone();
+                // Dodaj wizualną kulkę w punkcie 1
+                measureSphere1 = createMeasureSphere(localPoint);
+            } else {
+                measurePoint2 = localPoint.clone();
+                // Dodaj wizualną kulkę w punkcie 2
+                measureSphere2 = createMeasureSphere(localPoint);
+
                 // Oblicz odległość
                 var distance = measurePoint1.distanceTo(measurePoint2);
                 var distanceMM = Math.round(distance / SCALE);  // przelicz na mm
+                console.log('Pomiar debug:', {
+                    punkt1: measurePoint1.clone(),
+                    punkt2: measurePoint2.clone(),
+                    dystansJednostki: distance,
+                    dystansMM: distanceMM,
+                    SCALE: SCALE
+                });
 
                 // Narysuj linię między punktami
                 var geometry = new THREE.BufferGeometry().setFromPoints([measurePoint1, measurePoint2]);
                 var material = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
                 measureLine = new THREE.Line(geometry, material);
-                scene.add(measureLine);
+                measureLine.userData.isMeasureObject = true;
+                ladderContainer.add(measureLine);
 
                 // Wyświetl wynik
                 var resultDiv = document.getElementById('measureResult');
@@ -2099,7 +2225,9 @@
             for (var ladderIdx = 0; ladderIdx < laddersToPreview.length; ladderIdx++) {
                 var ladderNum = laddersToPreview[ladderIdx];
                 var sections = getLadderSectionsForLadder(ladderNum);
-                if (sections.length === 0) continue;
+
+                // Pomiń drabinę bez sekcji, CHYBA że jest attyka (wtedy można dodać uchwyt w attyce)
+                if (sections.length === 0 && handrailType !== 'attic') continue;
 
                 var ladderTotalHeight = getTotalHeightForLadder(ladderNum);
                 var geoConfig = ladderGeometryConfig[ladderNum];
@@ -2107,6 +2235,21 @@
                 // Generuj pozycje podglądu dla tej drabiny
                 var previewPositions = [];
                 var currentOffset = 0;
+
+                // Dla attyki: dodaj pozycję między 1. a 2. szczeblem attyki
+                if (handrailType === 'attic') {
+                    // Góra attyki = maxHeight/2 + atticRailHeight
+                    // Pierwszy szczebel = góra - firstRungFromTop
+                    // Drugi szczebel = pierwszy - rungSpacing
+                    // Sciskane = między nimi
+                    var topOfAttic = (maxHeight / 2) + DIMS.atticRailHeight;
+                    var firstRungAttic = topOfAttic - DIMS.firstRungFromTop;
+                    var secondRungAttic = firstRungAttic - DIMS.rungSpacing;
+                    var atticSciskaneY = (firstRungAttic + secondRungAttic) / 2 - 1125;  // -1125mm w dół
+                    if (isPositionValidForSciskane(atticSciskaneY, ladderNum)) {
+                        previewPositions.push(atticSciskaneY);
+                    }
+                }
 
                 for (var s = 0; s < sections.length; s++) {
                     var section = sections[s];
@@ -2294,15 +2437,22 @@
                 var ladderHandles = (ladderNum === 1) ? sciskaneHandles1 : sciskaneHandles2;
                 var ladderTotalHeight = getTotalHeightForLadder(ladderNum);
 
-                // Filtruj uchwyty - usuń te poza zakresem drabiny
+                // Filtruj uchwyty - usuń te poza zakresem drabiny (z uwzględnieniem attyki)
+                // Dla attyki: dodatkowe miejsce na uchwyty w sekcji attyki
+                var maxOffset = ladderTotalHeight - 50;
+                if (handrailType === 'attic') {
+                    // Attyka: pozycja uchwytu może być do góry attyki
+                    // Góra attyki względem dołu drabiny = ladderTotalHeight + atticRailHeight
+                    maxOffset = ladderTotalHeight + DIMS.atticRailHeight;
+                }
                 if (ladderNum === 1) {
                     sciskaneHandles1 = sciskaneHandles1.filter(function(handle) {
-                        return handle.offsetFromBottom >= 50 && handle.offsetFromBottom <= ladderTotalHeight - 50;
+                        return handle.offsetFromBottom >= 50 && handle.offsetFromBottom <= maxOffset;
                     });
                     ladderHandles = sciskaneHandles1;
                 } else {
                     sciskaneHandles2 = sciskaneHandles2.filter(function(handle) {
-                        return handle.offsetFromBottom >= 50 && handle.offsetFromBottom <= ladderTotalHeight - 50;
+                        return handle.offsetFromBottom >= 50 && handle.offsetFromBottom <= maxOffset;
                     });
                     ladderHandles = sciskaneHandles2;
                 }
@@ -2345,6 +2495,14 @@
                     leftModel.userData.isSciskanePlaced = true;
                     leftModel.userData.sciskaneOffsetFromBottom = handle.offsetFromBottom;
                     leftModel.userData.ladderNum = ladderNum;
+                    // Ciemniejszy materiał dla uchwytów
+                    leftModel.traverse(function(child) {
+                        if (child.isMesh && child.material) {
+                            child.material = child.material.clone();
+                            child.material.color.multiplyScalar(0.85);
+                        }
+                    });
+                    addOutlineToModel(leftModel);
                     ladderContainer.add(leftModel);
                     sciskanePlacedObjects.push(leftModel);
 
@@ -2358,6 +2516,14 @@
                     rightModel.userData.isSciskanePlaced = true;
                     rightModel.userData.sciskaneOffsetFromBottom = handle.offsetFromBottom;
                     rightModel.userData.ladderNum = ladderNum;
+                    // Ciemniejszy materiał dla uchwytów
+                    rightModel.traverse(function(child) {
+                        if (child.isMesh && child.material) {
+                            child.material = child.material.clone();
+                            child.material.color.multiplyScalar(0.85);
+                        }
+                    });
+                    addOutlineToModel(rightModel);
                     ladderContainer.add(rightModel);
                     sciskanePlacedObjects.push(rightModel);
 
@@ -2504,6 +2670,7 @@
                     hoop.position.z = (geoConfig1.zOffset + 241) * SCALE;  // 250-9mm
                     hoop.userData.isSafetyCage = true;
                     hoop.userData.ladderNum = 1;
+                    addOutlineToModel(hoop);
                     ladderContainer.add(hoop);
                 }
 
@@ -2520,6 +2687,7 @@
                     closing1.position.z = (geoConfig1.zOffset + 241 + 4) * SCALE;  // +4mm w przód
                     closing1.userData.isSafetyCage = true;
                     closing1.userData.ladderNum = 1;
+                    addOutlineToModel(closing1);
                     ladderContainer.add(closing1);
                 }
             }
@@ -2541,6 +2709,7 @@
                     hoop.position.z = (geoConfig2.zOffset - 241) * SCALE;  // 250-9mm
                     hoop.userData.isSafetyCage = true;
                     hoop.userData.ladderNum = 2;
+                    addOutlineToModel(hoop);
                     ladderContainer.add(hoop);
                 }
 
@@ -2557,6 +2726,7 @@
                     closing2.position.z = (geoConfig2.zOffset - 241 - 4) * SCALE;  // -4mm w tył
                     closing2.userData.isSafetyCage = true;
                     closing2.userData.ladderNum = 2;
+                    addOutlineToModel(closing2);
                     ladderContainer.add(closing2);
                 }
             }
@@ -2706,6 +2876,7 @@
 
                             model.userData.isAngleBracket = true;
                             model.userData.ladderNum = ladderNum;
+                            addOutlineToModel(model);
                             ladderContainer.add(model);
                         }
                     }
@@ -2742,27 +2913,40 @@
             camera.lookAt(0, 0, 0);
             
             // Renderer
-            var renderer = new THREE.WebGLRenderer({ 
+            var renderer = new THREE.WebGLRenderer({
                 antialias: true,
                 alpha: false
             });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('container').appendChild(renderer.domElement);
 
             // Raycaster do klikania na obiekty
             raycaster = new THREE.Raycaster();
 
-            // Swiatla
-            var ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            // Swiatla - mocne cienie
+            var ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Bardzo niskie dla głębokich cieni
             scene.add(ambientLight);
-            
-            var light1 = new THREE.DirectionalLight(0xffffff, 0.6);
-            light1.position.set(10, 10, 10);
+
+            var light1 = new THREE.DirectionalLight(0xffffff, 1.0);
+            light1.position.set(5, 15, 10);
+            light1.castShadow = true;
+            light1.shadow.mapSize.width = 2048;
+            light1.shadow.mapSize.height = 2048;
+            light1.shadow.camera.near = 0.5;
+            light1.shadow.camera.far = 50;
+            light1.shadow.camera.left = -15;
+            light1.shadow.camera.right = 15;
+            light1.shadow.camera.top = 15;
+            light1.shadow.camera.bottom = -15;
+            light1.shadow.bias = -0.001;
             scene.add(light1);
-            
-            var light2 = new THREE.DirectionalLight(0xffffff, 0.4);
-            light2.position.set(-10, -10, -10);
+
+            var light2 = new THREE.DirectionalLight(0xffffff, 0.15);
+            light2.position.set(-5, 5, -10);
             scene.add(light2);
             
             // Grupa obrotu i kontener na drabinkę
@@ -2831,11 +3015,22 @@
                     model.userData.isConnector = true;
                     model.userData.ladderNum = ladderNum;
                     model.userData.isMidRungBracket = isMidRung;
-                    // Ustaw też na wszystkich child'ach
+                    // Ustaw też na wszystkich child'ach + przyciemnij materiał + outline
                     model.traverse(function(child) {
                         child.userData.isConnector = true;
                         child.userData.ladderNum = ladderNum;
                         child.userData.isMidRungBracket = isMidRung;
+                        if (child.isMesh && child.material) {
+                            child.material = child.material.clone();
+                            child.material.color.multiplyScalar(0.65);
+                            // Dodaj outline
+                            if (outlineEnabled) {
+                                var edges = new THREE.EdgesGeometry(child.geometry, outlineThreshold);
+                                var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: outlineColor, transparent: true, opacity: outlineOpacity }));
+                                line.userData.isOutline = true;
+                                child.add(line);
+                            }
+                        }
                     });
                     connectorObjects.push(model);
                     return model;
@@ -2929,11 +3124,20 @@
                     model.userData.wspornikType = type;
                     model.userData.ladderNum = ladderNum;
                     model.userData.isMidRungBracket = isMidRung;
-                    // Ustaw też na wszystkich child'ach
+                    // Ustaw też na wszystkich child'ach + przyciemnij materiał + outline
                     model.traverse(function(child) {
                         child.userData.isWspornik = true;
                         child.userData.ladderNum = ladderNum;
                         child.userData.isMidRungBracket = isMidRung;
+                        if (child.isMesh && child.material) {
+                            // Dodaj outline
+                            if (outlineEnabled) {
+                                var edges = new THREE.EdgesGeometry(child.geometry, outlineThreshold);
+                                var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: outlineColor, transparent: true, opacity: outlineOpacity }));
+                                line.userData.isOutline = true;
+                                child.add(line);
+                            }
+                        }
                     });
                     // Dla długich wsporników cofnij o 100mm, dla średnich o 50mm
                     // Dla drabiny 2: odwrócona logika - średni +50mm (10cm do tyłu), długi +100mm (20cm do tyłu)
@@ -3026,6 +3230,9 @@
                             // Oznacz do której drabiny należy
                             model.userData.ladderNum = ladderNum;
 
+                            // Dodaj outline do sekcji drabiny
+                            addOutlineToModel(model);
+
                             ladderContainer.add(model);
                         }
 
@@ -3051,6 +3258,7 @@
                         leftPorecz.position.x = -railOffset * SCALE;
                         leftPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;  // -50mm w dół
                         leftPorecz.position.z = -245.5 * SCALE;  // 24.55cm do tyłu
+                        addOutlineToModel(leftPorecz);
                         ladderContainer.add(leftPorecz);
                     }
 
@@ -3062,6 +3270,7 @@
                         rightPorecz.position.x = railOffset * SCALE;
                         rightPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;  // -50mm w dół
                         rightPorecz.position.z = -245.5 * SCALE;  // 24.55cm do tyłu
+                        addOutlineToModel(rightPorecz);
                         ladderContainer.add(rightPorecz);
                     }
                 } else if (handrailType === 'platform') {
@@ -3076,6 +3285,7 @@
                         leftPorecz.position.x = -railOffset * SCALE;
                         leftPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;
                         leftPorecz.position.z = -245.5 * SCALE;
+                        addOutlineToModel(leftPorecz);
                         ladderContainer.add(leftPorecz);
                     }
 
@@ -3087,6 +3297,7 @@
                         rightPorecz.position.x = railOffset * SCALE;
                         rightPorecz.position.y = (topOfLadder + DIMS.handrailVertical / 2) * SCALE;
                         rightPorecz.position.z = -245.5 * SCALE;
+                        addOutlineToModel(rightPorecz);
                         ladderContainer.add(rightPorecz);
                     }
 
@@ -3098,6 +3309,7 @@
                         podest.position.x = 0;  // wyśrodkowane
                         podest.position.y = (topOfLadder + DIMS.handrailVertical / 2 - 536) * SCALE;  // 536mm w dół
                         podest.position.z = -245.5 * SCALE;
+                        addOutlineToModel(podest);
                         ladderContainer.add(podest);
                     }
                 } else if (handrailType === 'attic') {
@@ -3111,6 +3323,7 @@
                         attyka.position.x = 0;  // wyśrodkowane
                         attyka.position.y = (topOfMainRails + DIMS.atticRailHeight / 2) * SCALE;
                         attyka.position.z = -535 * SCALE;  // 53.5cm do tyłu (+5mm do przodu)
+                        addOutlineToModel(attyka);
                         ladderContainer.add(attyka);
                     }
 
@@ -3122,6 +3335,7 @@
                         krata.position.x = 0;
                         krata.position.y = (topOfMainRails + DIMS.atticRailHeight / 2 - 430) * SCALE;  // 43cm w dół
                         krata.position.z = -535 * SCALE;  // 53.5cm do tyłu (+5mm do przodu)
+                        addOutlineToModel(krata);
                         ladderContainer.add(krata);
                     }
                 }
@@ -3409,9 +3623,10 @@
                 }
 
                 ladderContainer.position.y = 0;
+
                 updateStatus();
             }
-            
+
             function updateStatus() {
                 // Użyj danych aktualnie edytowanej drabiny
                 syncLadderAliases();
@@ -3753,13 +3968,9 @@
                         if (useGalvanizedTexture) {
                             child.material.map = galvanizedTexture;
                             child.material.color = new THREE.Color(0xffffff);
-                            child.material.metalness = 0.1;
-                            child.material.roughness = 0.9;
                         } else {
                             child.material.map = null;
                             child.material.color = pickerColor;
-                            child.material.metalness = 0.3;
-                            child.material.roughness = 0.5;
                         }
                         child.material.needsUpdate = true;
                     }
@@ -3769,6 +3980,76 @@
             // Na start wyłącz color picker bo tekstura jest włączona
             document.getElementById('modelColorPicker').disabled = true;
             document.getElementById('modelColorPicker').style.opacity = '0.5';
+
+            // Funkcja do aktualizacji outline - tylko materiały (szybka)
+            function updateOutlineMaterials() {
+                ladderContainer.traverse(function(child) {
+                    if (child.isLineSegments && child.userData.isOutline) {
+                        child.visible = outlineEnabled;
+                        child.material.color.setHex(outlineColor);
+                        child.material.opacity = outlineOpacity;
+                    }
+                });
+            }
+
+            // Funkcja do przebudowy outline (wolna - tylko przy zmianie threshold)
+            function rebuildOutlines() {
+                ladderContainer.traverse(function(child) {
+                    if (child.isMesh && child.geometry) {
+                        // Usuń stare outline
+                        var toRemove = [];
+                        child.children.forEach(function(c) {
+                            if (c.isLineSegments && c.userData.isOutline) {
+                                toRemove.push(c);
+                            }
+                        });
+                        toRemove.forEach(function(c) {
+                            child.remove(c);
+                            if (c.geometry) c.geometry.dispose();
+                            if (c.material) c.material.dispose();
+                        });
+
+                        // Dodaj nowe outline jeśli włączone
+                        if (outlineEnabled) {
+                            var edges = new THREE.EdgesGeometry(child.geometry, outlineThreshold);
+                            var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: outlineColor, transparent: true, opacity: outlineOpacity }));
+                            line.userData.isOutline = true;
+                            child.add(line);
+                        }
+                    }
+                });
+            }
+
+            // Alias dla kompatybilności
+            function updateOutlines() {
+                updateOutlineMaterials();
+            }
+
+            // Event listenery dla outline
+            document.getElementById('outlineToggle').addEventListener('change', function() {
+                outlineEnabled = this.checked;
+                updateOutlineMaterials(); // Szybkie - tylko visibility
+            });
+
+            document.getElementById('outlineColorPicker').addEventListener('input', function() {
+                outlineColor = new THREE.Color(this.value).getHex();
+                updateOutlineMaterials(); // Szybkie - tylko kolor
+            });
+
+            var outlineThresholdTimeout;
+            document.getElementById('outlineThreshold').addEventListener('input', function() {
+                outlineThreshold = parseInt(this.value);
+                // Debounce - przebuduj dopiero po zatrzymaniu suwaka
+                clearTimeout(outlineThresholdTimeout);
+                outlineThresholdTimeout = setTimeout(function() {
+                    rebuildOutlines();
+                }, 300);
+            });
+
+            document.getElementById('outlineOpacity').addEventListener('input', function() {
+                outlineOpacity = parseInt(this.value) / 100;
+                updateOutlineMaterials(); // Szybkie - tylko opacity
+            });
 
             // Przyciski dla Drabiny 1
             document.getElementById('add7Btn1').addEventListener('click', function() {
@@ -3977,12 +4258,15 @@
             var lastZoom = 50;
             var lastPanCenter = { x: 0, y: 0 };
             var clickStartPosition = { x: 0, y: 0 }; // Pozycja mousedown dla detekcji kliknięcia
+            var clickStartTime = 0; // Czas mousedown dla detekcji kliknięcia
             var CLICK_THRESHOLD = 5; // Max dystans w pikselach dla kliknięcia
+            var CLICK_TIME_THRESHOLD = 400; // Max czas w ms dla kliknięcia
 
             function onPointerStart(x, y) {
                 isDragging = true;
                 previousPosition = { x: x, y: y };
                 clickStartPosition = { x: x, y: y }; // Zapamiętaj pozycję startu dla detekcji kliknięcia
+                clickStartTime = Date.now(); // Zapamiętaj czas startu
             }
             
             function onPointerMove(x, y) {
@@ -4018,11 +4302,25 @@
 
                 raycaster.setFromCamera(mouse, camera);
 
-                // Tryb miarki
+                // Tryb miarki - sprawdź czy to prawdziwe kliknięcie (czas + dystans)
                 if (measureMode) {
-                    var intersects = raycaster.intersectObjects(ladderContainer.children, true);
-                    if (intersects.length > 0) {
-                        addMeasurePoint(intersects[0].point);
+                    var clickDuration = Date.now() - clickStartTime;
+                    var measureClickDist = Math.sqrt(
+                        Math.pow(e.clientX - clickStartPosition.x, 2) +
+                        Math.pow(e.clientY - clickStartPosition.y, 2)
+                    );
+                    // Kliknięcie musi być szybkie (<400ms) i w tym samym miejscu
+                    if (clickDuration <= CLICK_TIME_THRESHOLD && measureClickDist <= CLICK_THRESHOLD) {
+                        var intersects = raycaster.intersectObjects(ladderContainer.children, true);
+                        // Filtruj obiekty pomiarowe
+                        for (var mi = 0; mi < intersects.length; mi++) {
+                            var mobj = intersects[mi].object;
+                            if (mobj.userData && mobj.userData.isMeasureObject) {
+                                continue;
+                            }
+                            addMeasurePoint(intersects[mi].point);
+                            break;
+                        }
                     }
                     return;
                 }
@@ -4133,15 +4431,42 @@
                 if (isPanning) {
                     var deltaX = e.clientX - previousPosition.x;
                     var deltaY = e.clientY - previousPosition.y;
-                    
+
                     // Przesuwanie proporcjonalne do odległości (jak w CAD)
                     var panScale = camera.position.z * 0.00075;
                     cameraOffset.x -= deltaX * panScale;
                     cameraOffset.y += deltaY * panScale;
-                    
+
                     previousPosition = { x: e.clientX, y: e.clientY };
                 } else {
                     onPointerMove(e.clientX, e.clientY);
+                }
+
+                // Podgląd punktu pomiaru (gdy włączony measureMode)
+                if (measureMode && !isDragging && !isPanning) {
+                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+                    var intersects = raycaster.intersectObjects(ladderContainer.children, true);
+
+                    // Filtruj obiekty pomiarowe (sfery i linie)
+                    var validIntersect = null;
+                    for (var i = 0; i < intersects.length; i++) {
+                        var obj = intersects[i].object;
+                        // Pomiń obiekty pomiarowe
+                        if (obj.userData && obj.userData.isMeasureObject) {
+                            continue;
+                        }
+                        validIntersect = intersects[i];
+                        break;
+                    }
+
+                    if (validIntersect) {
+                        updateMeasurePreview(validIntersect.point);
+                    } else {
+                        clearMeasurePreview();
+                    }
                 }
             });
             
@@ -4153,6 +4478,7 @@
             renderer.domElement.addEventListener('mouseleave', function() {
                 isPanning = false;
                 onPointerEnd();
+                clearMeasurePreview();
             });
             
             // Eventy dotyku
@@ -4238,11 +4564,25 @@
 
                 raycaster.setFromCamera(mouse, camera);
 
-                // Tryb miarki
+                // Tryb miarki - sprawdź czy to prawdziwe kliknięcie (czas + dystans)
                 if (measureMode) {
-                    var intersects = raycaster.intersectObjects(ladderContainer.children, true);
-                    if (intersects.length > 0) {
-                        addMeasurePoint(intersects[0].point);
+                    var clickDuration = Date.now() - clickStartTime;
+                    var measureClickDist = Math.sqrt(
+                        Math.pow(clientX - clickStartPosition.x, 2) +
+                        Math.pow(clientY - clickStartPosition.y, 2)
+                    );
+                    // Kliknięcie musi być szybkie (<400ms) i w tym samym miejscu
+                    if (clickDuration <= CLICK_TIME_THRESHOLD && measureClickDist <= CLICK_THRESHOLD) {
+                        var intersects = raycaster.intersectObjects(ladderContainer.children, true);
+                        // Filtruj obiekty pomiarowe
+                        for (var mi = 0; mi < intersects.length; mi++) {
+                            var mobj = intersects[mi].object;
+                            if (mobj.userData && mobj.userData.isMeasureObject) {
+                                continue;
+                            }
+                            addMeasurePoint(intersects[mi].point);
+                            break;
+                        }
                     }
                     return;
                 }
